@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>クイズ管理</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container" style="align-items:flex-start">
+    <div class="admin-wrap">
+      <h1>出題者コントロール</h1>
+
+      <!-- 現在の状態 -->
+      <div class="status-bar">
+        <span>フェーズ：<span id="phase-badge" class="phase-badge phase-waiting">waiting</span></span>
+        <span id="status-q">問題未選択</span>
+      </div>
+
+      <!-- 問題リスト（data-text と data-correct を編集してください） -->
+      <ul class="q-list" id="q-list">
+        <li class="q-item" data-num="1" data-text="円周率を小数第2位まで答えてください。">
+          <div class="q-item-top">
+            <span class="q-num-badge">1</span>
+            <span class="q-text-label">円周率を小数第2位まで答えてください。</span>
+          </div>
+          <div class="correct-input-wrap">
+            <label>正解：</label>
+            <input type="number" class="correct-val" step="any" placeholder="3.14" />
+          </div>
+        </li>
+        <li class="q-item" data-num="2" data-text="地球から月までの距離は何万kmですか？">
+          <div class="q-item-top">
+            <span class="q-num-badge">2</span>
+            <span class="q-text-label">地球から月までの距離は何万kmですか？</span>
+          </div>
+          <div class="correct-input-wrap">
+            <label>正解：</label>
+            <input type="number" class="correct-val" step="any" placeholder="38.4" />
+          </div>
+        </li>
+        <li class="q-item" data-num="3" data-text="光の速さは秒速何万kmですか？">
+          <div class="q-item-top">
+            <span class="q-num-badge">3</span>
+            <span class="q-text-label">光の速さは秒速何万kmですか？</span>
+          </div>
+          <div class="correct-input-wrap">
+            <label>正解：</label>
+            <input type="number" class="correct-val" step="any" placeholder="30" />
+          </div>
+        </li>
+        <li class="q-item" data-num="4" data-text="日本一長い川は何kmですか？">
+          <div class="q-item-top">
+            <span class="q-num-badge">4</span>
+            <span class="q-text-label">日本一長い川は何kmですか？</span>
+          </div>
+          <div class="correct-input-wrap">
+            <label>正解：</label>
+            <input type="number" class="correct-val" step="any" placeholder="367" />
+          </div>
+        </li>
+      </ul>
+
+      <!-- ボタン -->
+      <div class="action-grid">
+        <button class="btn btn-open"    id="btn-open"    disabled>▶ 回答を開始する</button>
+        <button class="btn btn-close"   id="btn-close"   disabled>■ 回答を締め切る</button>
+        <button class="btn btn-results" id="btn-results" disabled>📊 回答結果を表示する</button>
+        <button class="btn btn-ranking" id="btn-ranking" disabled>🏆 総合ランキングを表示する</button>
+        <button class="btn btn-next"    id="btn-next"    disabled>➡ 次の問題へ（待機中に戻す）</button>
+      </div>
+
+      <p class="admin-msg" id="admin-msg"></p>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

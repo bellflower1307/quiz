@@ -1,6 +1,88 @@
 <!DOCTYPE html>
-<html>
-  <body>
-    <h1>Quiz App Coming Soon</h1>
-  </body>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>クイズ参加</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+
+    <!-- ① ニックネーム入力 -->
+    <div id="nickname-screen" class="screen hidden">
+      <h1>クイズに参加する</h1>
+      <p class="sub-text">ランキングに表示されるテーブル番号を入力してください。</p>
+      <form id="nickname-form" novalidate>
+        <div class="field">
+          <label for="nickname-input">テーブル番号</label>
+          <input type="text" id="nickname-input" maxlength="12" placeholder="例：A" required />
+        </div>
+        <button type="submit" class="btn-primary">参加する</button>
+      </form>
+    </div>
+
+    <!-- ② 待機中 -->
+    <div id="waiting-screen" class="screen hidden">
+      <div class="big-icon">⏳</div>
+      <p class="screen-title">出題者が問題を準備中です…</p>
+      <p class="nickname-display" id="waiting-nickname"></p>
+    </div>
+
+    <!-- ③ 回答入力 -->
+    <div id="question-screen" class="screen hidden">
+      <div class="question-badge">Q<span id="q-number"></span></div>
+      <p id="q-text" class="question-text"></p>
+      <form id="answer-form" novalidate>
+        <div class="field">
+          <label for="answer-input">あなたの回答（数値）</label>
+          <input type="number" id="answer-input" step="any" inputmode="decimal"
+                 placeholder="例：3.14" required />
+        </div>
+        <button type="submit" id="submit-btn" class="btn-primary">回答を送信する</button>
+        <p id="answer-message" class="message" aria-live="polite"></p>
+      </form>
+    </div>
+
+    <!-- ④ 送信済み・集計待ち -->
+    <div id="submitted-screen" class="screen hidden">
+      <div class="big-icon">✅</div>
+      <p class="screen-title">回答を送信しました！</p>
+      <p class="sub-text">結果発表をお待ちください…</p>
+    </div>
+
+    <!-- ⑤ 締切（未回答） -->
+    <div id="closed-screen" class="screen hidden">
+      <div class="big-icon">🔒</div>
+      <p class="screen-title">回答受付が終了しました</p>
+      <p class="sub-text">結果発表をお待ちください…</p>
+    </div>
+
+    <!-- ⑥ 結果発表 -->
+    <div id="results-screen" class="screen hidden">
+      <div class="results-header">
+        <span class="question-badge">Q<span id="res-q-number"></span></span>
+        <h2>結果発表！</h2>
+      </div>
+      <div class="correct-answer-box">
+        正解：<strong id="res-correct"></strong>
+      </div>
+      <div id="res-podium" class="podium"></div>
+      <div id="res-my-answer" class="my-answer-box hidden"></div>
+      <div class="all-answers-wrap">
+        <p class="section-label">全回答一覧</p>
+        <ul id="res-all-answers" class="answer-list"></ul>
+      </div>
+    </div>
+
+    <!-- ⑦ 総合ランキング -->
+    <div id="ranking-screen" class="screen hidden">
+      <div class="big-icon">🏆</div>
+      <h2 class="screen-title">総合ランキング</h2>
+      <ol id="ranking-list" class="ranking-list"></ol>
+    </div>
+
+  </div>
+  <script src="script.js"></script>
+</body>
 </html>
