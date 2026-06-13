@@ -200,19 +200,6 @@ document.getElementById('nickname-form').addEventListener('submit', async (e) =>
 });
 
 // ============================================================
-// テーブル番号変更（localStorage をクリアしてニックネーム画面へ）
-// ============================================================
-document.getElementById('btn-change-nickname').addEventListener('click', () => {
-  localStorage.removeItem('quiz_participant_id');
-  localStorage.removeItem('quiz_nickname');
-  participantId   = null;
-  nickname        = null;
-  submittedAnswer = null;
-  document.getElementById('nickname-input').value = '';
-  showScreen('nickname');
-});
-
-// ============================================================
 // 回答送信
 // ============================================================
 document.getElementById('answer-form').addEventListener('submit', async (e) => {
