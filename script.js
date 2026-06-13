@@ -22,11 +22,12 @@ async function apiFetch(path, opts = {}) {
     ...opts,
     headers: { ...BASE_HEADERS, ...(opts.headers || {}) },
   });
-  if (!res.ok && res.status !== 204) {
+  if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || `HTTP ${res.status}`);
   }
-  return res.status === 204 ? null : res.json();
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 async function fetchQuizState() {
