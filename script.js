@@ -343,6 +343,16 @@ function escHtml(str) {
 // 初期化
 // ============================================================
 (async () => {
+  // ?reset が付いている場合は localStorage をクリアしてニックネーム画面へ
+  if (new URLSearchParams(location.search).has('reset')) {
+    localStorage.removeItem('quiz_participant_id');
+    localStorage.removeItem('quiz_nickname');
+    participantId = null;
+    nickname      = null;
+    // URL から ?reset を消してリロードを防ぐ
+    history.replaceState(null, '', location.pathname);
+  }
+
   if (!participantId || !nickname) {
     showScreen('nickname');
     return;
