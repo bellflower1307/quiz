@@ -1,8 +1,5 @@
-// ============================================================
-// 設定（script.js と同じ値を設定してください）
-// ============================================================
-const SUPABASE_URL      = 'https://your-project-id.supabase.co';
-const SUPABASE_ANON_KEY = 'your-anon-key-here';
+// SUPABASE_URL / SUPABASE_ANON_KEY は config.js（ビルド時生成）で定義されます。
+// ローカル開発時は config.local.js を作成して読み込んでください（.gitignore 済み）。
 
 const BASE_HEADERS = {
   'apikey':        SUPABASE_ANON_KEY,
