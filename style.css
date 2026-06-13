@@ -36,6 +36,17 @@ h2 { font-size: 1.2rem; font-weight: 700; color: #1a202c; }
 .sub-text { font-size: .875rem; color: #718096; text-align: center; margin-bottom: 24px; line-height: 1.6; }
 .screen-title { font-size: 1.1rem; font-weight: 600; color: #2d3748; text-align: center; margin-bottom: 8px; }
 .nickname-display { font-size: .85rem; color: #a0aec0; text-align: center; margin-top: 12px; }
+
+.btn-reset {
+  display: block;
+  margin: 20px auto 0;
+  background: none;
+  border: none;
+  font-size: .8rem;
+  color: #a0aec0;
+  text-decoration: underline;
+  cursor: pointer;
+}
 .big-icon { font-size: 3rem; text-align: center; margin-bottom: 16px; }
 .section-label { font-size: .8rem; font-weight: 600; color: #a0aec0; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
 

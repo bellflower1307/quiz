@@ -36,9 +36,15 @@ async function patchQuizState(patch) {
   });
 }
 
+function todayStartISO() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
 async function fetchAnswers(questionNumber) {
   return apiFetch(
-    `/rest/v1/answers?question_number=eq.${questionNumber}&select=id,participant_id,nickname,value&order=submitted_at.desc`
+    `/rest/v1/answers?question_number=eq.${questionNumber}&submitted_at=gte.${todayStartISO()}&select=id,participant_id,nickname,value&order=submitted_at.desc`
   );
 }
 

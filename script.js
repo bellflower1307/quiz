@@ -58,9 +58,15 @@ async function insertAnswer(questionNumber, value) {
   });
 }
 
+function todayStartISO() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
 async function fetchAnswers(questionNumber) {
   return apiFetch(
-    `/rest/v1/answers?question_number=eq.${questionNumber}&select=participant_id,nickname,value,points_earned&order=submitted_at.desc`
+    `/rest/v1/answers?question_number=eq.${questionNumber}&submitted_at=gte.${todayStartISO()}&select=participant_id,nickname,value,points_earned&order=submitted_at.desc`
   );
 }
 
@@ -191,6 +197,19 @@ document.getElementById('nickname-form').addEventListener('submit', async (e) =>
     console.error(err);
     btn.disabled = false;
   }
+});
+
+// ============================================================
+// テーブル番号変更（localStorage をクリアしてニックネーム画面へ）
+// ============================================================
+document.getElementById('btn-change-nickname').addEventListener('click', () => {
+  localStorage.removeItem('quiz_participant_id');
+  localStorage.removeItem('quiz_nickname');
+  participantId   = null;
+  nickname        = null;
+  submittedAnswer = null;
+  document.getElementById('nickname-input').value = '';
+  showScreen('nickname');
 });
 
 // ============================================================
