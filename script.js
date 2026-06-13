@@ -60,7 +60,7 @@ async function insertAnswer(questionNumber, value) {
 
 async function fetchAnswers(questionNumber) {
   return apiFetch(
-    `/rest/v1/answers?question_number=eq.${questionNumber}&select=participant_id,nickname,value,points_earned&order=submitted_at.asc`
+    `/rest/v1/answers?question_number=eq.${questionNumber}&select=participant_id,nickname,value,points_earned&order=submitted_at.desc`
   );
 }
 
