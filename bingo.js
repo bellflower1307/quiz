@@ -7,15 +7,14 @@ const BASE_HEADERS = {
 };
 
 // ============================================================
-// 参加者情報（クイズアプリと共有）
+// 参加者情報（ビンゴ専用 localStorage キー）
 // ============================================================
-const participantId = localStorage.getItem('quiz_participant_id');
-const nickname      = localStorage.getItem('quiz_nickname');
+let participantId = localStorage.getItem('bingo_participant_id');
+let nickname      = localStorage.getItem('bingo_nickname');
 
 // ============================================================
 // ビンゴ定数
 // ============================================================
-// 各列の数字範囲（標準ビンゴ: B=1-15, I=16-30, N=31-45, G=46-60, O=61-75）
 const COLUMNS = [
   { min: 1,  max: 15 },
   { min: 16, max: 30 },
@@ -24,42 +23,37 @@ const COLUMNS = [
   { min: 61, max: 75 },
 ];
 
-// 判定ライン（行・列・対角線）
 const LINES = [
-  [0,1,2,3,4], [5,6,7,8,9], [10,11,12,13,14], [15,16,17,18,19], [20,21,22,23,24], // 行
-  [0,5,10,15,20], [1,6,11,16,21], [2,7,12,17,22], [3,8,13,18,23], [4,9,14,19,24], // 列
-  [0,6,12,18,24], [4,8,12,16,20],                                                   // 斜め
+  [0,1,2,3,4], [5,6,7,8,9], [10,11,12,13,14], [15,16,17,18,19], [20,21,22,23,24],
+  [0,5,10,15,20], [1,6,11,16,21], [2,7,12,17,22], [3,8,13,18,23], [4,9,14,19,24],
+  [0,6,12,18,24], [4,8,12,16,20],
 ];
 
-const FREE_INDEX = 12; // 中央マス
+const FREE_INDEX = 12;
 
 // ============================================================
-// カード生成（5×5、行優先で格納）
+// カード生成
 // ============================================================
 function generateNumbers() {
   const nums = [];
   for (const col of COLUMNS) {
     const pool = Array.from({ length: col.max - col.min + 1 }, (_, i) => i + col.min);
-    // Fisher-Yates shuffle → 先頭5つを取得
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
-    nums.push(pool.slice(0, 5)); // 各列5つ
+    nums.push(pool.slice(0, 5));
   }
-  // 行優先に変換: [row0col0, row0col1, ..., row4col4]
   const card = [];
-  for (let row = 0; row < 5; row++) {
-    for (let col = 0; col < 5; col++) {
+  for (let row = 0; row < 5; row++)
+    for (let col = 0; col < 5; col++)
       card.push(nums[col][row]);
-    }
-  }
   return card;
 }
 
 function initialMarked() {
   const m = Array(25).fill(false);
-  m[FREE_INDEX] = true; // FREE マスは最初からマーク
+  m[FREE_INDEX] = true;
   return m;
 }
 
@@ -115,11 +109,11 @@ async function updateMarked(cardId, marked) {
 }
 
 async function fetchAllDraws() {
-  return apiFetch('/rest/v1/draws?select=number&order=drawn_at.asc') ?? [];
+  return await apiFetch('/rest/v1/draws?select=number&order=drawn_at.asc') ?? [];
 }
 
 // ============================================================
-// Supabase Realtime（draws テーブルの INSERT を購読）
+// Supabase Realtime
 // ============================================================
 function subscribeDraws(onDraw) {
   const wsUrl = SUPABASE_URL.replace('https://', 'wss://')
@@ -131,7 +125,6 @@ function subscribeDraws(onDraw) {
       if (ws.readyState === WebSocket.OPEN)
         ws.send(JSON.stringify({ topic: 'phoenix', event: 'heartbeat', payload: {}, ref: null }));
     }, 25000);
-
     ws.send(JSON.stringify({
       topic: 'realtime:public:draws',
       event: 'phx_join',
@@ -148,9 +141,8 @@ function subscribeDraws(onDraw) {
 
   ws.addEventListener('message', (e) => {
     const msg = JSON.parse(e.data);
-    if (msg.event === 'postgres_changes' && msg.payload?.data?.table === 'draws') {
+    if (msg.event === 'postgres_changes' && msg.payload?.data?.table === 'draws')
       onDraw(msg.payload.data.record.number);
-    }
   });
 
   ws.addEventListener('close', () => setTimeout(() => subscribeDraws(onDraw), 3000));
@@ -169,10 +161,9 @@ function showScreen(name) {
   Object.entries(screens).forEach(([k, el]) => el.classList.toggle('hidden', k !== name));
 }
 
-// カード状態（グローバル）
 let cardId  = null;
-let numbers = null; // int[25]
-let marked  = null; // bool[25]
+let numbers = null;
+let marked  = null;
 
 // ============================================================
 // グリッド描画
@@ -180,22 +171,17 @@ let marked  = null; // bool[25]
 function renderGrid(animate = false, justMarkedIndex = -1) {
   const grid = document.getElementById('bingo-grid');
   grid.innerHTML = '';
-
   for (let i = 0; i < 25; i++) {
     const cell = document.createElement('div');
     cell.className = 'bingo-cell';
-    cell.dataset.index = i;
-
     if (i === FREE_INDEX) {
       cell.classList.add('free');
       cell.textContent = 'FREE';
     } else {
       cell.textContent = numbers[i];
     }
-
     if (marked[i]) cell.classList.add('marked');
     if (animate && i === justMarkedIndex) cell.classList.add('just-marked');
-
     grid.appendChild(cell);
   }
 }
@@ -203,14 +189,13 @@ function renderGrid(animate = false, justMarkedIndex = -1) {
 function updateStatusBadge() {
   const badge = document.getElementById('bingo-status-badge');
   const { bingos, reaches } = checkStatus(marked);
-
   if (bingos > 0) {
-    badge.textContent  = `🎉 BINGO！（${bingos}ライン）`;
-    badge.className    = 'bingo-status-badge bingo';
+    badge.textContent = `🎉 BINGO！（${bingos}ライン）`;
+    badge.className   = 'bingo-status-badge bingo';
     badge.classList.remove('hidden');
   } else if (reaches > 0) {
-    badge.textContent  = `🔥 リーチ！（${reaches}ライン）`;
-    badge.className    = 'bingo-status-badge reach';
+    badge.textContent = `🔥 リーチ！（${reaches}ライン）`;
+    badge.className   = 'bingo-status-badge reach';
     badge.classList.remove('hidden');
   } else {
     badge.classList.add('hidden');
@@ -218,35 +203,47 @@ function updateStatusBadge() {
 }
 
 function showLastDraw(num) {
-  const box = document.getElementById('last-draw-box');
   document.getElementById('last-draw-num').textContent = num;
-  box.classList.remove('hidden');
+  document.getElementById('last-draw-box').classList.remove('hidden');
 }
 
 // ============================================================
-// 抽選番号が来たときの処理
+// 抽選番号の適用
 // ============================================================
 async function applyDraw(num, save = true) {
-  let changed     = false;
-  let changedIndex = -1;
-
+  let changed = false, changedIndex = -1;
   for (let i = 0; i < 25; i++) {
     if (numbers[i] === num && !marked[i]) {
-      marked[i]    = true;
-      changed       = true;
-      changedIndex  = i;
-      break;
+      marked[i] = true; changed = true; changedIndex = i; break;
     }
   }
-
   showLastDraw(num);
-
   if (changed) {
     renderGrid(true, changedIndex);
     updateStatusBadge();
     if (save && cardId) await updateMarked(cardId, marked);
   }
 }
+
+// ============================================================
+// テーブル番号フォーム
+// ============================================================
+document.getElementById('bingo-nickname-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const nick = document.getElementById('bingo-nickname-input').value.trim();
+  if (!nick) return;
+
+  const btn = e.target.querySelector('button');
+  btn.disabled = true;
+
+  if (!participantId) participantId = crypto.randomUUID();
+  nickname = nick;
+  localStorage.setItem('bingo_participant_id', participantId);
+  localStorage.setItem('bingo_nickname', nickname);
+
+  await startApp();
+  btn.disabled = false;
+});
 
 // ============================================================
 // カード生成ボタン
@@ -263,10 +260,8 @@ document.getElementById('btn-generate').addEventListener('click', async () => {
     const saved = await saveCard(numbers, marked);
     cardId = saved.id;
     startCardScreen();
-    // 既存の抽選番号をすべて適用
     const draws = await fetchAllDraws();
     for (const { number } of draws) await applyDraw(number, false);
-    // まとめて保存
     if (draws.length > 0 && cardId) await updateMarked(cardId, marked);
   } catch (err) {
     console.error(err);
@@ -283,15 +278,9 @@ function startCardScreen() {
 }
 
 // ============================================================
-// 初期化
+// アプリ本体の起動（ニックネーム確定後に呼ぶ）
 // ============================================================
-(async () => {
-  if (!participantId || !nickname) {
-    showScreen('login');
-    return;
-  }
-
-  // 既存カードを確認
+async function startApp() {
   try {
     const card = await fetchMyCard();
     if (card) {
@@ -299,7 +288,6 @@ function startCardScreen() {
       numbers = card.numbers;
       marked  = card.marked;
       startCardScreen();
-      // 保存後に追加された抽選を反映
       const draws = await fetchAllDraws();
       for (const { number } of draws) await applyDraw(number, false);
       if (cardId) await updateMarked(cardId, marked);
@@ -312,7 +300,16 @@ function startCardScreen() {
     document.getElementById('bingo-nickname-label').textContent = `テーブル：${nickname}`;
     showScreen('generate');
   }
-
-  // Realtime 購読（カードの有無に関わらず開始）
   subscribeDraws((num) => applyDraw(num, true));
+}
+
+// ============================================================
+// 初期化
+// ============================================================
+(async () => {
+  if (!participantId || !nickname) {
+    showScreen('login');
+    return;
+  }
+  await startApp();
 })();

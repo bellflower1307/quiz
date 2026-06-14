@@ -9,11 +9,17 @@
 <body>
   <div class="container">
 
-    <!-- 未登録（クイズページで登録が必要） -->
+    <!-- テーブル番号入力（ビンゴ専用） -->
     <div id="bingo-login-screen" class="screen hidden">
-      <div class="big-icon">🎴</div>
-      <p class="screen-title">テーブル番号が未登録です</p>
-      <p class="sub-text">先にクイズ参加ページからテーブル番号を登録してください。</p>
+      <h1>ビンゴに参加する</h1>
+      <p class="sub-text">ビンゴ用のテーブル番号を入力してください。</p>
+      <form id="bingo-nickname-form" novalidate>
+        <div class="field">
+          <label for="bingo-nickname-input">テーブル番号</label>
+          <input type="text" id="bingo-nickname-input" maxlength="12" placeholder="例：A" required />
+        </div>
+        <button type="submit" class="btn-primary">参加する</button>
+      </form>
     </div>
 
     <!-- カード未生成 -->

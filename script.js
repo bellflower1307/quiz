@@ -71,7 +71,18 @@ async function fetchAnswers(questionNumber) {
 }
 
 async function fetchRanking() {
-  return apiFetch('/rest/v1/participants?select=id,nickname,total_points&order=total_points.desc&limit=20');
+  // 当日の answers から points_earned を participant ごとに集計
+  const rows = await apiFetch(
+    `/rest/v1/answers?submitted_at=gte.${todayStartISO()}&select=participant_id,nickname,points_earned`
+  ) ?? [];
+  const map = new Map();
+  for (const row of rows) {
+    if (!map.has(row.participant_id)) {
+      map.set(row.participant_id, { id: row.participant_id, nickname: row.nickname, total_points: 0 });
+    }
+    map.get(row.participant_id).total_points += row.points_earned;
+  }
+  return [...map.values()].sort((a, b) => b.total_points - a.total_points).slice(0, 20);
 }
 
 // ============================================================
