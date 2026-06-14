@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ビンゴ</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+
+    <!-- 未登録（クイズページで登録が必要） -->
+    <div id="bingo-login-screen" class="screen hidden">
+      <div class="big-icon">🎴</div>
+      <p class="screen-title">テーブル番号が未登録です</p>
+      <p class="sub-text">先にクイズ参加ページからテーブル番号を登録してください。</p>
+    </div>
+
+    <!-- カード未生成 -->
+    <div id="bingo-generate-screen" class="screen hidden">
+      <div class="big-icon">🎲</div>
+      <p class="screen-title">ビンゴカードを生成しよう</p>
+      <p class="sub-text" id="bingo-nickname-label"></p>
+      <button id="btn-generate" class="btn-primary" style="margin-top:8px">
+        カードをランダム生成する
+      </button>
+    </div>
+
+    <!-- ビンゴカード -->
+    <div id="bingo-card-screen" class="screen hidden">
+      <div class="bingo-top">
+        <p class="bingo-player-name" id="bingo-player-name"></p>
+        <div id="bingo-status-badge" class="bingo-status-badge hidden"></div>
+      </div>
+
+      <!-- BINGO ヘッダー -->
+      <div class="bingo-header">
+        <span>B</span><span>I</span><span>N</span><span>G</span><span>O</span>
+      </div>
+
+      <!-- 5×5 グリッド（JS で生成） -->
+      <div id="bingo-grid" class="bingo-grid"></div>
+
+      <!-- 最新抽選番号 -->
+      <div id="last-draw-box" class="last-draw-box hidden">
+        最新の抽選番号：<strong id="last-draw-num"></strong>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="config.js"></script>
+  <script src="bingo.js"></script>
+</body>
+</html>

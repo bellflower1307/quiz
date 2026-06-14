@@ -269,3 +269,227 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
 .btn-next:hover:not(:disabled)    { background: #4a5568; }
 
 .admin-msg { font-size: .875rem; color: #718096; text-align: center; min-height: 1.4em; margin-top: 4px; }
+
+.admin-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.admin-title-row h1 { margin-bottom: 0; }
+
+.btn-logout {
+  padding: 6px 14px;
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: .8rem;
+  color: #718096;
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.btn-logout:hover { border-color: #e53e3e; color: #e53e3e; }
+
+/* ============================================================
+   bingo.html
+   ============================================================ */
+.bingo-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.bingo-player-name {
+  font-size: .85rem;
+  color: #718096;
+}
+
+/* BINGO ヘッダー */
+.bingo-header {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.bingo-header span {
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #4f46e5;
+  padding: 4px 0;
+}
+
+/* 5×5 グリッド */
+.bingo-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.bingo-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(.75rem, 3.5vw, 1rem);
+  font-weight: 600;
+  border-radius: 8px;
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
+  color: #2d3748;
+  cursor: default;
+  transition: background .25s, border-color .25s, color .25s, transform .15s;
+  user-select: none;
+}
+
+.bingo-cell.free {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4f46e5;
+  font-size: clamp(.6rem, 2.8vw, .8rem);
+}
+
+.bingo-cell.marked {
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: #fff;
+}
+
+.bingo-cell.marked.free {
+  background: #4f46e5;
+  border-color: #312e81;
+  color: #fff;
+}
+
+.bingo-cell.just-marked {
+  animation: pop .35s ease;
+}
+
+@keyframes pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+/* ステータスバッジ（リーチ／ビンゴ） */
+.bingo-status-badge {
+  font-size: .85rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.bingo-status-badge.reach  { background: #fef3c7; color: #92400e; }
+.bingo-status-badge.bingo  { background: #dcfce7; color: #166534; animation: glow 1s ease infinite alternate; }
+
+@keyframes glow {
+  from { box-shadow: 0 0 4px #4ade80; }
+  to   { box-shadow: 0 0 14px #16a34a; }
+}
+
+/* 最新抽選番号 */
+.last-draw-box {
+  margin-top: 14px;
+  text-align: center;
+  font-size: .9rem;
+  color: #718096;
+}
+.last-draw-box strong {
+  font-size: 1.4rem;
+  color: #4f46e5;
+  margin-left: 4px;
+}
+
+/* ============================================================
+   bingo-admin.html
+   ============================================================ */
+.ba-current-box {
+  text-align: center;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px 16px;
+  margin-bottom: 16px;
+}
+.ba-current-label { font-size: .8rem; color: #a0aec0; margin-bottom: 6px; }
+.ba-current-num {
+  font-size: 4rem;
+  font-weight: 800;
+  color: #4f46e5;
+  line-height: 1;
+  min-height: 4.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ba-drawn-count { font-size: .85rem; color: #718096; margin-top: 8px; }
+
+.ba-draw-btn { margin-bottom: 20px; font-size: 1.05rem; padding: 14px; }
+
+/* 全番号グリッド */
+.ba-grid-wrap {
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+.ba-col-headers {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+  margin-bottom: 3px;
+}
+.ba-col-headers span {
+  text-align: center;
+  font-weight: 800;
+  font-size: .95rem;
+  padding: 3px 0;
+}
+.ba-col-headers span:nth-child(1) { color: #3b82f6; }
+.ba-col-headers span:nth-child(2) { color: #8b5cf6; }
+.ba-col-headers span:nth-child(3) { color: #ef4444; }
+.ba-col-headers span:nth-child(4) { color: #f59e0b; }
+.ba-col-headers span:nth-child(5) { color: #10b981; }
+
+.ba-num-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+}
+.ba-num-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(.65rem, 2.5vw, .85rem);
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  color: #4a5568;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.ba-num-cell.ba-b { background: #eff6ff; border-color: #bfdbfe; }
+.ba-num-cell.ba-i { background: #f5f3ff; border-color: #ddd6fe; }
+.ba-num-cell.ba-n { background: #fff1f2; border-color: #fecdd3; }
+.ba-num-cell.ba-g { background: #fffbeb; border-color: #fde68a; }
+.ba-num-cell.ba-o { background: #f0fdf4; border-color: #bbf7d0; }
+
+.ba-num-cell.drawn {
+  background: #1e1b4b;
+  border-color: #1e1b4b;
+  color: #fff;
+}
+
+.ba-reset-btn {
+  width: 100%;
+  padding: 10px;
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #a0aec0;
+  font-size: .875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.ba-reset-btn:hover { border-color: #e53e3e; color: #e53e3e; }
+

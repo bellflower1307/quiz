@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ビンゴ管理</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container" style="align-items:flex-start">
+
+    <!-- ログイン画面 -->
+    <div id="login-screen" class="admin-wrap">
+      <h1>管理者ログイン</h1>
+      <p class="sub-text" style="margin-bottom:24px">ビンゴ抽選管理者専用画面です。</p>
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="login-email">メールアドレス</label>
+          <input type="email" id="login-email" autocomplete="email" required />
+        </div>
+        <div class="field">
+          <label for="login-password">パスワード</label>
+          <input type="password" id="login-password" autocomplete="current-password" required />
+        </div>
+        <button type="submit" class="btn-primary">ログイン</button>
+        <p id="login-error" class="message error" style="margin-top:12px"></p>
+      </form>
+    </div>
+
+    <!-- 管理コンテンツ（ログイン後に表示） -->
+    <div id="admin-content" class="admin-wrap hidden">
+      <div class="admin-title-row">
+        <h1>ビンゴ抽選管理</h1>
+        <button id="btn-logout" class="btn-logout">ログアウト</button>
+      </div>
+
+      <div class="ba-current-box">
+        <p class="ba-current-label">最新の抽選番号</p>
+        <div id="ba-current-num" class="ba-current-num">—</div>
+        <p id="ba-drawn-count" class="ba-drawn-count">0 / 75 抽選済み</p>
+      </div>
+
+      <button id="btn-draw" class="btn-primary ba-draw-btn">🎲 次の番号を抽選する</button>
+
+      <div class="ba-grid-wrap">
+        <div class="ba-col-headers">
+          <span>B</span><span>I</span><span>N</span><span>G</span><span>O</span>
+        </div>
+        <div id="ba-num-grid" class="ba-num-grid"></div>
+      </div>
+
+      <button id="btn-reset" class="btn ba-reset-btn">🗑 抽選をリセットする</button>
+      <p class="admin-msg" id="ba-msg"></p>
+    </div>
+
+  </div>
+
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script src="bingo-admin.js"></script>
+</body>
+</html>

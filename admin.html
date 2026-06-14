@@ -8,16 +8,37 @@
 </head>
 <body>
   <div class="container" style="align-items:flex-start">
-    <div class="admin-wrap">
-      <h1>出題者コントロール</h1>
 
-      <!-- 現在の状態 -->
+    <!-- ログイン画面 -->
+    <div id="login-screen" class="admin-wrap">
+      <h1>管理者ログイン</h1>
+      <p class="sub-text" style="margin-bottom:24px">クイズ出題者専用画面です。</p>
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="login-email">メールアドレス</label>
+          <input type="email" id="login-email" autocomplete="email" required />
+        </div>
+        <div class="field">
+          <label for="login-password">パスワード</label>
+          <input type="password" id="login-password" autocomplete="current-password" required />
+        </div>
+        <button type="submit" class="btn-primary">ログイン</button>
+        <p id="login-error" class="message error" style="margin-top:12px"></p>
+      </form>
+    </div>
+
+    <!-- 管理コンテンツ（ログイン後に表示） -->
+    <div id="admin-content" class="admin-wrap hidden">
+      <div class="admin-title-row">
+        <h1>出題者コントロール</h1>
+        <button id="btn-logout" class="btn-logout">ログアウト</button>
+      </div>
+
       <div class="status-bar">
         <span>フェーズ：<span id="phase-badge" class="phase-badge phase-waiting">waiting</span></span>
         <span id="status-q">問題未選択</span>
       </div>
 
-      <!-- 問題リスト（data-text と data-correct を編集してください） -->
       <ul class="q-list" id="q-list">
         <li class="q-item" data-num="1" data-text="円周率を小数第2位まで答えてください。">
           <div class="q-item-top">
@@ -61,7 +82,6 @@
         </li>
       </ul>
 
-      <!-- ボタン -->
       <div class="action-grid">
         <button class="btn btn-open"    id="btn-open"    disabled>▶ 回答を開始する</button>
         <button class="btn btn-close"   id="btn-close"   disabled>■ 回答を締め切る</button>
@@ -72,9 +92,11 @@
 
       <p class="admin-msg" id="admin-msg"></p>
     </div>
+
   </div>
 
   <script src="config.js"></script>
+  <script src="auth.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>
