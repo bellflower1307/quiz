@@ -31,7 +31,17 @@
     <div id="admin-content" class="admin-wrap hidden">
       <div class="admin-title-row">
         <h1>ビンゴ抽選管理</h1>
-        <button id="btn-logout" class="btn-logout">ログアウト</button>
+        <div class="auth-info">
+          <span class="auth-dot"></span>
+          <span id="auth-email" class="auth-email"></span>
+          <button id="btn-logout" class="btn-logout">ログアウト</button>
+        </div>
+      </div>
+
+      <!-- ビンゴ・リーチ通知 -->
+      <div class="ba-notifications">
+        <div id="ba-bingo-list" class="ba-notify-section"></div>
+        <div id="ba-reach-list" class="ba-notify-section"></div>
       </div>
 
       <div class="ba-current-box">

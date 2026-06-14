@@ -275,20 +275,78 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
+  gap: 8px;
 }
-.admin-title-row h1 { margin-bottom: 0; }
+.admin-title-row h1 { margin-bottom: 0; font-size: 1.1rem; }
+
+/* ログイン状態表示 */
+.auth-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.auth-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #38a169;
+  flex-shrink: 0;
+}
+.auth-email {
+  font-size: .75rem;
+  color: #718096;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .btn-logout {
-  padding: 6px 14px;
+  padding: 5px 10px;
   background: none;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
-  font-size: .8rem;
+  font-size: .75rem;
   color: #718096;
   cursor: pointer;
+  white-space: nowrap;
   transition: border-color .2s, color .2s;
 }
 .btn-logout:hover { border-color: #e53e3e; color: #e53e3e; }
+
+/* ビンゴ・リーチ通知パネル */
+.ba-notifications {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.ba-notify-section {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  min-height: 80px;
+}
+.ba-notify-title {
+  font-size: .8rem;
+  font-weight: 700;
+  color: #4a5568;
+  margin-bottom: 6px;
+}
+.ba-notify-empty {
+  font-size: .8rem;
+  color: #a0aec0;
+}
+.ba-notify-item {
+  font-size: .8rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+.ba-notify-bingo { background: #fef9c3; color: #854d0e; }
+.ba-notify-reach { background: #fff7ed; color: #9a3412; }
 
 /* ============================================================
    bingo.html

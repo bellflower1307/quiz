@@ -49,6 +49,22 @@ async function deleteAllDraws() {
 }
 
 // ============================================================
+// ビンゴ判定ライン（bingo.js と同じ定義）
+const LINES = [
+  [0,1,2,3,4], [5,6,7,8,9], [10,11,12,13,14], [15,16,17,18,19], [20,21,22,23,24],
+  [0,5,10,15,20], [1,6,11,16,21], [2,7,12,17,22], [3,8,13,18,23], [4,9,14,19,24],
+  [0,6,12,18,24], [4,8,12,16,20],
+];
+
+function computeCardStatus(marked) {
+  const bingos  = LINES.filter(line => line.every(i => marked[i])).length;
+  const reaches = LINES.filter(line =>
+    !line.every(i => marked[i]) && line.filter(i => marked[i]).length === 4
+  ).length;
+  return { bingos, reaches };
+}
+
+// ============================================================
 // 状態
 // ============================================================
 const drawnSet = new Set();
@@ -192,6 +208,58 @@ function subscribeDraws() {
 }
 
 // ============================================================
+// ビンゴ・リーチ通知
+// ============================================================
+async function refreshNotifications() {
+  let cards;
+  try {
+    cards = await apiFetch(
+      '/rest/v1/cards?select=participant_id,nickname,marked&order=created_at.desc'
+    ) ?? [];
+  } catch {
+    return;
+  }
+
+  // participant_id ごとに最新カードだけ残す
+  const seen   = new Set();
+  const unique = cards.filter(c => {
+    if (seen.has(c.participant_id)) return false;
+    seen.add(c.participant_id); return true;
+  });
+
+  const bingoPlayers = [];
+  const reachPlayers = [];
+  for (const c of unique) {
+    const { bingos, reaches } = computeCardStatus(c.marked);
+    if (bingos  > 0) bingoPlayers.push({ nickname: c.nickname, count: bingos });
+    else if (reaches > 0) reachPlayers.push({ nickname: c.nickname, count: reaches });
+  }
+
+  renderNotifySection(
+    document.getElementById('ba-bingo-list'),
+    '🎉 ビンゴ', bingoPlayers, 'ba-notify-bingo'
+  );
+  renderNotifySection(
+    document.getElementById('ba-reach-list'),
+    '🔥 リーチ', reachPlayers, 'ba-notify-reach'
+  );
+}
+
+function renderNotifySection(el, title, players, cls) {
+  el.innerHTML = `<p class="ba-notify-title">${title}（${players.length}名）</p>`;
+  if (players.length === 0) {
+    el.innerHTML += `<p class="ba-notify-empty">なし</p>`;
+    return;
+  }
+  players.forEach(p => {
+    const item = document.createElement('div');
+    item.className = `ba-notify-item ${cls}`;
+    item.textContent = `${p.nickname}（${p.count}ライン）`;
+    el.appendChild(item);
+  });
+}
+
+// ============================================================
 // 初期化（ログイン後に実行）
 // ============================================================
 setupAdminAuth(async () => {
@@ -210,4 +278,8 @@ setupAdminAuth(async () => {
     setMsg('読み込みエラー：' + err.message);
   }
   subscribeDraws();
+
+  // 通知パネルを初回表示 + 5秒ごとに更新
+  await refreshNotifications();
+  setInterval(refreshNotifications, 5000);
 });

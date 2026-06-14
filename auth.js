@@ -38,6 +38,18 @@ function returnToLogin(message) {
   if (loginError)   loginError.textContent = message ?? 'セッションが切れました。再ログインしてください。';
 }
 
+// JWT からメールアドレスを取得
+function getAdminEmail() {
+  const token = getAdminToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return payload.email ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // 各管理画面の JS から呼び出す初期化ヘルパー
 // ログイン済みなら onReady() を実行、未ログインならログイン画面を表示
 function setupAdminAuth(onReady) {
@@ -46,6 +58,7 @@ function setupAdminAuth(onReady) {
   const loginForm     = document.getElementById('login-form');
   const loginError    = document.getElementById('login-error');
   const logoutBtn     = document.getElementById('btn-logout');
+  const authEmailEl   = document.getElementById('auth-email');
 
   function showLogin() {
     loginScreen.classList.remove('hidden');
@@ -55,6 +68,7 @@ function setupAdminAuth(onReady) {
   function showAdmin() {
     loginScreen.classList.add('hidden');
     adminContent.classList.remove('hidden');
+    if (authEmailEl) authEmailEl.textContent = getAdminEmail() ?? '';
     onReady();
   }
 
