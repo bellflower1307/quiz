@@ -307,6 +307,13 @@ async function startApp() {
 // 初期化
 // ============================================================
 (async () => {
+  if (new URLSearchParams(location.search).has('reset')) {
+    localStorage.removeItem('bingo_participant_id');
+    localStorage.removeItem('bingo_nickname');
+    participantId = null;
+    nickname      = null;
+    history.replaceState(null, '', location.pathname);
+  }
   if (!participantId || !nickname) {
     showScreen('login');
     return;
