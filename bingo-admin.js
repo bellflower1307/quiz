@@ -19,7 +19,8 @@ async function apiFetch(path, opts = {}) {
   });
   if (!res.ok) {
     if (res.status === 401 || res.status === 403) {
-      adminLogout(); // トークン切れ → ログイン画面へリロード
+      returnToLogin();
+      throw new Error('認証エラー：再ログインしてください。');
     }
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || `HTTP ${res.status}`);

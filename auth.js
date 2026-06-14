@@ -27,6 +27,17 @@ function adminLogout() {
   location.reload();
 }
 
+// 401/403 時にログイン画面へ戻す（リロードなし）
+function returnToLogin(message) {
+  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  const loginScreen  = document.getElementById('login-screen');
+  const adminContent = document.getElementById('admin-content');
+  const loginError   = document.getElementById('login-error');
+  if (loginScreen)  loginScreen.classList.remove('hidden');
+  if (adminContent) adminContent.classList.add('hidden');
+  if (loginError)   loginError.textContent = message ?? 'セッションが切れました。再ログインしてください。';
+}
+
 // 各管理画面の JS から呼び出す初期化ヘルパー
 // ログイン済みなら onReady() を実行、未ログインならログイン画面を表示
 function setupAdminAuth(onReady) {
