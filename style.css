@@ -1,29 +1,49 @@
+/* ============================================================
+   style.css — 全画面共通スタイル
+   （index.html / admin.html / bingo.html / bingo-admin.html）
+
+   CSS の基本：
+     セレクター { プロパティ: 値; }
+   セレクターで「どの要素か」を指定し、プロパティで「見た目」を指定する。
+   クラス（.名前）は HTML の class="名前" に対応する。
+   id（#名前）は HTML の id="名前" に対応する。
+   ============================================================ */
+
+/* すべての要素のデフォルト余白をリセットする
+   box-sizing: border-box にすると padding や border を
+   width/height に含めて計算するので、レイアウトが計算しやすくなる */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* body: ページ全体の背景と中央揃えレイアウト
+   display: flex + align-items/justify-content: center で
+   縦横中央に配置する（フレックスボックスレイアウト） */
 body {
   font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
-  background: #f0f4f8;
-  min-height: 100vh;
+  background: #f0f4f8; /* 薄い青灰色の背景 */
+  min-height: 100vh;   /* ページの高さを画面いっぱいにする */
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 16px;
+  align-items: center;     /* 縦方向：中央 */
+  justify-content: center; /* 横方向：中央 */
+  padding: 24px 16px;      /* 上下 24px・左右 16px の余白 */
 }
 
+/* 白いカード型のコンテナ（全画面共通の外枠） */
 .container {
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,.08);
+  border-radius: 16px; /* 角を丸くする */
+  box-shadow: 0 4px 24px rgba(0,0,0,.08); /* 薄い影でカードっぽく見せる */
   padding: 40px 28px;
   width: 100%;
-  max-width: 480px;
+  max-width: 480px; /* スマホで見やすい最大幅 */
 }
 
-/* ---- screens ---- */
+/* ---- 画面の表示/非表示 ----
+   .hidden クラスが付くと display:none で非表示になる。
+   JS が classList.add/remove('hidden') で切り替える。 */
 .screen { display: block; }
 .screen.hidden { display: none; }
 
-/* ---- common ---- */
+/* ---- 見出し・テキスト ---- */
 h1 {
   font-size: 1.4rem;
   font-weight: 700;
@@ -36,13 +56,14 @@ h2 { font-size: 1.2rem; font-weight: 700; color: #1a202c; }
 .sub-text { font-size: .875rem; color: #718096; text-align: center; margin-bottom: 24px; line-height: 1.6; }
 .screen-title { font-size: 1.1rem; font-weight: 600; color: #2d3748; text-align: center; margin-bottom: 8px; }
 .nickname-display { font-size: .85rem; color: #a0aec0; text-align: center; margin-top: 12px; }
-.big-icon { font-size: 3rem; text-align: center; margin-bottom: 16px; }
+.big-icon { font-size: 3rem; text-align: center; margin-bottom: 16px; } /* ⏳ などの絵文字 */
 .section-label { font-size: .8rem; font-weight: 600; color: #a0aec0; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
 
-/* ---- form ---- */
+/* ---- フォーム ---- */
 .field { margin-bottom: 20px; }
 .field label { display: block; font-size: .875rem; font-weight: 600; color: #4a5568; margin-bottom: 6px; }
 
+/* テキスト・メール・数値の入力欄を統一スタイルにする */
 input[type="text"],
 input[type="email"],
 input[type="number"] {
@@ -52,18 +73,22 @@ input[type="number"] {
   border-radius: 8px;
   font-size: 1rem;
   color: #1a202c;
-  outline: none;
-  transition: border-color .2s, box-shadow .2s;
+  outline: none; /* フォーカス時のブラウザデフォルト枠を消す */
+  transition: border-color .2s, box-shadow .2s; /* 色の変化をなめらかにする */
 }
+/* 数値入力は大きめに中央揃えで表示 */
 input[type="number"] { font-size: 1.3rem; text-align: center; -moz-appearance: textfield; }
+/* ブラウザ標準の数値スピナー（上下矢印）を非表示にする */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+/* フォーカス時（選択中）に紫の枠線とぼかし光を表示 */
 input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); }
 
+/* メインのボタン（参加する・送信するなど） */
 .btn-primary {
   width: 100%;
   padding: 12px;
-  background: #4f46e5;
+  background: #4f46e5; /* インディゴ色 */
   color: #fff;
   font-size: 1rem;
   font-weight: 600;
@@ -72,14 +97,19 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   cursor: pointer;
   transition: background .2s, opacity .2s;
 }
-.btn-primary:hover:not(:disabled) { background: #4338ca; }
-.btn-primary:disabled { opacity: .55; cursor: not-allowed; }
+.btn-primary:hover:not(:disabled) { background: #4338ca; } /* ホバー時に少し暗くなる */
+.btn-primary:disabled { opacity: .55; cursor: not-allowed; } /* 無効時は薄く・カーソルを変える */
 
+/* メッセージ表示エリア（送信中・エラーなど） */
 .message { margin-top: 12px; font-size: .875rem; text-align: center; min-height: 1.4em; }
-.message.success { color: #276749; }
-.message.error   { color: #c53030; }
+.message.success { color: #276749; } /* 成功：緑 */
+.message.error   { color: #c53030; } /* エラー：赤 */
 
-/* ---- question screen ---- */
+/* ============================================================
+   クイズ参加画面（index.html）専用スタイル
+   ============================================================ */
+
+/* 「Q1」などの問題番号バッジ */
 .question-badge {
   display: inline-flex;
   align-items: center;
@@ -88,13 +118,15 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   font-weight: 700;
   font-size: .85rem;
   padding: 3px 12px;
-  border-radius: 999px;
+  border-radius: 999px; /* 完全な丸（ピル型） */
   margin-bottom: 14px;
 }
 .question-text { font-size: 1.15rem; font-weight: 600; color: #1a202c; line-height: 1.6; margin-bottom: 24px; }
 
-/* ---- results screen ---- */
+/* 結果発表：ヘッダー（バッジ＋「結果発表！」） */
 .results-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+
+/* 正解ボックス（緑色の枠） */
 .correct-answer-box {
   background: #f0fdf4;
   border: 1px solid #86efac;
@@ -107,7 +139,7 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
 }
 .correct-answer-box strong { font-size: 1.3rem; }
 
-/* podium: top 3 */
+/* 表彰台（上位3名） */
 .podium { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
 .podium-item {
   display: flex;
@@ -117,15 +149,15 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   border-radius: 10px;
   font-size: .95rem;
 }
-.podium-item.rank-1 { background: #fef9c3; border: 1px solid #fde047; }
-.podium-item.rank-2 { background: #f1f5f9; border: 1px solid #cbd5e0; }
-.podium-item.rank-3 { background: #fff7ed; border: 1px solid #fdba74; }
-.podium-medal { font-size: 1.3rem; }
-.podium-nick { font-weight: 600; color: #1a202c; flex: 1; }
-.podium-value { color: #4a5568; font-size: .875rem; }
-.podium-pts { font-weight: 700; color: #4f46e5; white-space: nowrap; }
+.podium-item.rank-1 { background: #fef9c3; border: 1px solid #fde047; } /* 金：黄色 */
+.podium-item.rank-2 { background: #f1f5f9; border: 1px solid #cbd5e0; } /* 銀：グレー */
+.podium-item.rank-3 { background: #fff7ed; border: 1px solid #fdba74; } /* 銅：オレンジ */
+.podium-medal  { font-size: 1.3rem; }
+.podium-nick   { font-weight: 600; color: #1a202c; flex: 1; } /* flex:1 で残りの幅を占める */
+.podium-value  { color: #4a5568; font-size: .875rem; }
+.podium-pts    { font-weight: 700; color: #4f46e5; white-space: nowrap; }
 
-/* my answer */
+/* 自分の回答ボックス（薄い紫の枠） */
 .my-answer-box {
   background: #eef2ff;
   border: 1px solid #c7d2fe;
@@ -137,22 +169,22 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   margin-bottom: 20px;
 }
 
-/* all answers list */
+/* 全回答一覧リスト */
 .answer-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
 .answer-list li {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-between; /* 名前・回答・差分を左右に分散配置 */
   padding: 6px 10px;
   border-radius: 6px;
   font-size: .875rem;
   color: #4a5568;
   background: #f7fafc;
 }
-.answer-list li.is-me { background: #eef2ff; color: #3730a3; font-weight: 600; }
+.answer-list li.is-me { background: #eef2ff; color: #3730a3; font-weight: 600; } /* 自分の行を強調 */
 .answer-diff { color: #a0aec0; font-size: .8rem; }
 
-/* ---- ranking screen ---- */
+/* ランキングリスト */
 .ranking-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
 .ranking-list li {
   display: flex;
@@ -163,27 +195,31 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   background: #f7fafc;
   font-size: .95rem;
 }
-.ranking-list li:nth-child(1) { background: #fef9c3; }
-.ranking-list li:nth-child(2) { background: #f1f5f9; }
-.ranking-list li:nth-child(3) { background: #fff7ed; }
-.rank-num { font-weight: 700; color: #718096; width: 24px; text-align: center; }
-.rank-nick { font-weight: 600; color: #1a202c; flex: 1; }
-.rank-pts { font-weight: 700; color: #4f46e5; }
+/* 上位3位の背景色を変える（nth-child は1番目・2番目・3番目のli） */
+.ranking-list li:nth-child(1) { background: #fef9c3; } /* 1位：金 */
+.ranking-list li:nth-child(2) { background: #f1f5f9; } /* 2位：銀 */
+.ranking-list li:nth-child(3) { background: #fff7ed; } /* 3位：銅 */
+.rank-num      { font-weight: 700; color: #718096; width: 24px; text-align: center; }
+.rank-nick     { font-weight: 600; color: #1a202c; flex: 1; }
+.rank-pts      { font-weight: 700; color: #4f46e5; }
 .rank-me-badge { font-size: .7rem; background: #4f46e5; color: #fff; border-radius: 4px; padding: 1px 6px; }
 
 /* ============================================================
-   admin.html
+   クイズ管理画面（admin.html）専用スタイル
    ============================================================ */
+
+/* 管理画面専用の白いカード（container より幅が広い） */
 .admin-wrap {
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(0,0,0,.08);
   padding: 32px 28px;
   width: 100%;
-  max-width: 580px;
+  max-width: 580px; /* 参加者画面より少し広め */
 }
 .admin-wrap h1 { font-size: 1.3rem; text-align: center; margin-bottom: 20px; }
 
+/* フェーズ表示バー（「フェーズ：受付中  Q1」など） */
 .status-bar {
   display: flex;
   align-items: center;
@@ -196,6 +232,8 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   font-size: .875rem;
   color: #4a5568;
 }
+
+/* フェーズバッジ（「受付中」「締切済」など色分けした丸型ラベル） */
 .phase-badge {
   display: inline-block;
   padding: 2px 10px;
@@ -204,34 +242,38 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   font-weight: 700;
   color: #fff;
 }
-.phase-waiting  { background: #a0aec0; }
-.phase-open     { background: #38a169; }
-.phase-closed   { background: #e53e3e; }
-.phase-results  { background: #d69e2e; }
-.phase-ranking  { background: #4f46e5; }
+.phase-waiting  { background: #a0aec0; } /* 待機中：グレー */
+.phase-open     { background: #38a169; } /* 受付中：緑 */
+.phase-closed   { background: #e53e3e; } /* 締切済：赤 */
+.phase-results  { background: #d69e2e; } /* 結果表示中：黄 */
+.phase-ranking  { background: #4f46e5; } /* ランキング表示中：紫 */
 
-/* question list */
+/* 問題リスト */
 .q-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
 .q-item {
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   padding: 12px 14px;
-  cursor: pointer;
+  cursor: pointer; /* クリック可能であることをカーソルで示す */
   transition: border-color .2s, background .2s;
 }
-.q-item:hover  { border-color: #4f46e5; background: #f5f3ff; }
-.q-item.active { border-color: #4f46e5; background: #eef2ff; }
+.q-item:hover  { border-color: #4f46e5; background: #f5f3ff; } /* ホバー時：薄紫 */
+.q-item.active { border-color: #4f46e5; background: #eef2ff; } /* 選択時：紫枠 */
 .q-item-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+
+/* 問題番号の丸いバッジ（① ② ③ …） */
 .q-num-badge {
-  flex-shrink: 0;
+  flex-shrink: 0; /* 縮まないようにする */
   width: 26px; height: 26px;
   background: #4f46e5; color: #fff;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-size: .8rem; font-weight: 700;
 }
-.q-item.active .q-num-badge { background: #312e81; }
+.q-item.active .q-num-badge { background: #312e81; } /* 選択中は濃い紫 */
 .q-text-label { font-size: .9rem; color: #2d3748; line-height: 1.5; }
+
+/* 正解入力欄（問題リスト内の小さなフォーム） */
 .correct-input-wrap { display: flex; align-items: center; gap: 8px; }
 .correct-input-wrap label { font-size: .8rem; color: #718096; white-space: nowrap; }
 .correct-input-wrap input {
@@ -244,7 +286,7 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
 }
 .correct-input-wrap input:focus { border-color: #4f46e5; }
 
-/* action buttons */
+/* 操作ボタングリッド（2列レイアウト） */
 .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
 .btn {
   padding: 10px 8px;
@@ -254,22 +296,23 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   border-radius: 8px;
   cursor: pointer;
   transition: opacity .2s, background .2s;
-  white-space: nowrap;
+  white-space: nowrap; /* テキストが折り返さないようにする */
 }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
-.btn-open    { background: #38a169; color: #fff; }
+.btn-open    { background: #38a169; color: #fff; }          /* 緑：開始 */
 .btn-open:hover:not(:disabled)    { background: #2f855a; }
-.btn-close   { background: #e53e3e; color: #fff; }
+.btn-close   { background: #e53e3e; color: #fff; }          /* 赤：締め切り */
 .btn-close:hover:not(:disabled)   { background: #c53030; }
-.btn-results { background: #d69e2e; color: #fff; grid-column: 1 / -1; }
+.btn-results { background: #d69e2e; color: #fff; grid-column: 1 / -1; } /* 黄：結果（全幅） */
 .btn-results:hover:not(:disabled) { background: #b7791f; }
-.btn-ranking { background: #4f46e5; color: #fff; grid-column: 1 / -1; }
+.btn-ranking { background: #4f46e5; color: #fff; grid-column: 1 / -1; } /* 紫：ランキング（全幅） */
 .btn-ranking:hover:not(:disabled) { background: #4338ca; }
-.btn-next    { background: #718096; color: #fff; grid-column: 1 / -1; }
+.btn-next    { background: #718096; color: #fff; grid-column: 1 / -1; } /* グレー：次へ（全幅） */
 .btn-next:hover:not(:disabled)    { background: #4a5568; }
 
 .admin-msg { font-size: .875rem; color: #718096; text-align: center; min-height: 1.4em; margin-top: 4px; }
 
+/* タイトル行（見出し＋ログイン状態インジケーター） */
 .admin-title-row {
   display: flex;
   align-items: center;
@@ -279,29 +322,32 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
 }
 .admin-title-row h1 { margin-bottom: 0; font-size: 1.1rem; }
 
-/* ログイン状態表示 */
+/* ログイン状態インジケーター（緑ドット＋メール＋ログアウトボタン） */
 .auth-info {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-shrink: 0;
+  flex-shrink: 0; /* 縮まないようにする（タイトルが優先して縮む） */
 }
+/* 緑の丸（ログイン中を示すインジケーター） */
 .auth-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #38a169;
+  background: #38a169; /* 緑 */
   flex-shrink: 0;
 }
+/* ログイン中のメールアドレス表示（長い場合は省略して…で表示） */
 .auth-email {
   font-size: .75rem;
   color: #718096;
   max-width: 130px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-overflow: ellipsis; /* はみ出した部分を「…」にする */
+  white-space: nowrap;     /* 折り返しを禁止 */
 }
 
+/* ログアウトボタン（透明な細枠ボタン） */
 .btn-logout {
   padding: 5px 10px;
   background: none;
@@ -313,31 +359,39 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   white-space: nowrap;
   transition: border-color .2s, color .2s;
 }
-.btn-logout:hover { border-color: #e53e3e; color: #e53e3e; }
+.btn-logout:hover { border-color: #e53e3e; color: #e53e3e; } /* ホバー時に赤くなる */
 
-/* ビンゴ・リーチ通知パネル */
+/* ============================================================
+   ビンゴ・リーチ通知パネル（bingo-admin.html）
+   ============================================================ */
+
+/* 通知パネル：ビンゴとリーチを横並び2カラムで表示 */
 .ba-notifications {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr; /* 等幅2列 */
   gap: 8px;
   margin-bottom: 16px;
 }
+/* 各セクション（ビンゴ一覧 / リーチ一覧）の枠 */
 .ba-notify-section {
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   padding: 10px 12px;
-  min-height: 80px;
+  min-height: 80px; /* 参加者がいなくても高さを確保 */
 }
+/* セクションの見出し（「🎉 ビンゴ（2名）」など） */
 .ba-notify-title {
   font-size: .8rem;
   font-weight: 700;
   color: #4a5568;
   margin-bottom: 6px;
 }
+/* 「なし」のテキスト */
 .ba-notify-empty {
   font-size: .8rem;
   color: #a0aec0;
 }
+/* 各参加者のエントリー（「テーブルA（1ライン）」など） */
 .ba-notify-item {
   font-size: .8rem;
   font-weight: 600;
@@ -345,12 +399,14 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   border-radius: 6px;
   margin-bottom: 4px;
 }
-.ba-notify-bingo { background: #fef9c3; color: #854d0e; }
-.ba-notify-reach { background: #fff7ed; color: #9a3412; }
+.ba-notify-bingo { background: #fef9c3; color: #854d0e; } /* ビンゴ：黄色背景 */
+.ba-notify-reach { background: #fff7ed; color: #9a3412; } /* リーチ：オレンジ背景 */
 
 /* ============================================================
-   bingo.html
+   ビンゴ参加者画面（bingo.html）専用スタイル
    ============================================================ */
+
+/* カード画面上部（テーブル番号＋ステータスバッジの横並び） */
 .bingo-top {
   display: flex;
   align-items: center;
@@ -363,10 +419,10 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   color: #718096;
 }
 
-/* BINGO ヘッダー */
+/* 「B I N G O」のカラーヘッダー */
 .bingo-header {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, 1fr); /* 5等分 */
   gap: 4px;
   margin-bottom: 4px;
 }
@@ -385,11 +441,13 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   gap: 4px;
 }
 
+/* 各マス */
 .bingo-cell {
-  aspect-ratio: 1;
+  aspect-ratio: 1; /* 縦横比を 1:1 に保つ（正方形） */
   display: flex;
   align-items: center;
   justify-content: center;
+  /* clamp(最小値, 推奨値, 最大値): 画面サイズに応じたフォントサイズ */
   font-size: clamp(.75rem, 3.5vw, 1rem);
   font-weight: 600;
   border-radius: 8px;
@@ -398,9 +456,10 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   color: #2d3748;
   cursor: default;
   transition: background .25s, border-color .25s, color .25s, transform .15s;
-  user-select: none;
+  user-select: none; /* テキスト選択を禁止（カード操作の誤動作を防ぐ） */
 }
 
+/* FREE マス（中央）：薄紫背景 */
 .bingo-cell.free {
   background: #eef2ff;
   border-color: #c7d2fe;
@@ -408,29 +467,33 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   font-size: clamp(.6rem, 2.8vw, .8rem);
 }
 
+/* マーク済みマス（抽選番号が出たマス）：濃い紫で塗りつぶす */
 .bingo-cell.marked {
   background: #4f46e5;
   border-color: #4f46e5;
   color: #fff;
 }
 
+/* マーク済みの FREE マス */
 .bingo-cell.marked.free {
   background: #4f46e5;
   border-color: #312e81;
   color: #fff;
 }
 
+/* 直前にマークされたマスのポップアニメーション */
 .bingo-cell.just-marked {
   animation: pop .35s ease;
 }
 
+/* pop アニメーション：拡大して元に戻る */
 @keyframes pop {
   0%   { transform: scale(1); }
-  40%  { transform: scale(1.25); }
+  40%  { transform: scale(1.25); } /* 一瞬 1.25 倍に拡大 */
   100% { transform: scale(1); }
 }
 
-/* ステータスバッジ（リーチ／ビンゴ） */
+/* リーチ・ビンゴのステータスバッジ */
 .bingo-status-badge {
   font-size: .85rem;
   font-weight: 700;
@@ -438,15 +501,17 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   border-radius: 999px;
   white-space: nowrap;
 }
-.bingo-status-badge.reach  { background: #fef3c7; color: #92400e; }
-.bingo-status-badge.bingo  { background: #dcfce7; color: #166534; animation: glow 1s ease infinite alternate; }
+.bingo-status-badge.reach { background: #fef3c7; color: #92400e; }
+/* ビンゴ時は光るアニメーション */
+.bingo-status-badge.bingo { background: #dcfce7; color: #166534; animation: glow 1s ease infinite alternate; }
 
+/* glow アニメーション：緑の光が点滅する */
 @keyframes glow {
   from { box-shadow: 0 0 4px #4ade80; }
   to   { box-shadow: 0 0 14px #16a34a; }
 }
 
-/* 最新抽選番号 */
+/* 最新抽選番号の表示エリア */
 .last-draw-box {
   margin-top: 14px;
   text-align: center;
@@ -460,8 +525,10 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
 }
 
 /* ============================================================
-   bingo-admin.html
+   ビンゴ抽選管理画面（bingo-admin.html）専用スタイル
    ============================================================ */
+
+/* 最新抽選番号の大きな表示ボックス */
 .ba-current-box {
   text-align: center;
   background: #f7fafc;
@@ -471,25 +538,30 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   margin-bottom: 16px;
 }
 .ba-current-label { font-size: .8rem; color: #a0aec0; margin-bottom: 6px; }
+/* 番号を大きく表示（「42」など） */
 .ba-current-num {
   font-size: 4rem;
   font-weight: 800;
   color: #4f46e5;
   line-height: 1;
-  min-height: 4.5rem;
+  min-height: 4.5rem; /* 番号がない場合もレイアウトが崩れないよう高さを確保 */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .ba-drawn-count { font-size: .85rem; color: #718096; margin-top: 8px; }
 
+/* 抽選ボタン：通常より大きめに */
 .ba-draw-btn { margin-bottom: 20px; font-size: 1.05rem; padding: 14px; }
 
-/* 全番号グリッド */
+/* 1〜75 全番号グリッドの外枠
+   overflow-x: auto: 横スクロール可能にする（小さい画面対策） */
 .ba-grid-wrap {
   margin-bottom: 16px;
   overflow-x: auto;
 }
+
+/* B I N G O 列ヘッダー */
 .ba-col-headers {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -502,17 +574,21 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   font-size: .95rem;
   padding: 3px 0;
 }
-.ba-col-headers span:nth-child(1) { color: #3b82f6; }
-.ba-col-headers span:nth-child(2) { color: #8b5cf6; }
-.ba-col-headers span:nth-child(3) { color: #ef4444; }
-.ba-col-headers span:nth-child(4) { color: #f59e0b; }
-.ba-col-headers span:nth-child(5) { color: #10b981; }
+/* 各列を色分けする */
+.ba-col-headers span:nth-child(1) { color: #3b82f6; } /* B：青 */
+.ba-col-headers span:nth-child(2) { color: #8b5cf6; } /* I：紫 */
+.ba-col-headers span:nth-child(3) { color: #ef4444; } /* N：赤 */
+.ba-col-headers span:nth-child(4) { color: #f59e0b; } /* G：黄 */
+.ba-col-headers span:nth-child(5) { color: #10b981; } /* O：緑 */
 
+/* 番号グリッド（75マス） */
 .ba-num-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 3px;
 }
+
+/* 各番号マス */
 .ba-num-cell {
   aspect-ratio: 1;
   display: flex;
@@ -525,18 +601,21 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   color: #4a5568;
   transition: background .2s, color .2s, border-color .2s;
 }
-.ba-num-cell.ba-b { background: #eff6ff; border-color: #bfdbfe; }
-.ba-num-cell.ba-i { background: #f5f3ff; border-color: #ddd6fe; }
-.ba-num-cell.ba-n { background: #fff1f2; border-color: #fecdd3; }
-.ba-num-cell.ba-g { background: #fffbeb; border-color: #fde68a; }
-.ba-num-cell.ba-o { background: #f0fdf4; border-color: #bbf7d0; }
+/* 列ごとの薄い色分け */
+.ba-num-cell.ba-b { background: #eff6ff; border-color: #bfdbfe; } /* B：薄青 */
+.ba-num-cell.ba-i { background: #f5f3ff; border-color: #ddd6fe; } /* I：薄紫 */
+.ba-num-cell.ba-n { background: #fff1f2; border-color: #fecdd3; } /* N：薄赤 */
+.ba-num-cell.ba-g { background: #fffbeb; border-color: #fde68a; } /* G：薄黄 */
+.ba-num-cell.ba-o { background: #f0fdf4; border-color: #bbf7d0; } /* O：薄緑 */
 
+/* 抽選済みのマス：濃い紺色で塗りつぶす */
 .ba-num-cell.drawn {
   background: #1e1b4b;
   border-color: #1e1b4b;
   color: #fff;
 }
 
+/* リセットボタン（目立たない細枠ボタン） */
 .ba-reset-btn {
   width: 100%;
   padding: 10px;
@@ -549,5 +628,4 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   cursor: pointer;
   transition: border-color .2s, color .2s;
 }
-.ba-reset-btn:hover { border-color: #e53e3e; color: #e53e3e; }
-
+.ba-reset-btn:hover { border-color: #e53e3e; color: #e53e3e; } /* ホバー時に赤くなる（警告色） */

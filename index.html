@@ -1,88 +1,126 @@
 <!DOCTYPE html>
+<!-- ブラウザに「これはHTMLファイルです」と伝える宣言 -->
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <!-- スマホでも文字が小さくならないようにする設定 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>クイズ参加</title>
+  <!-- style.css を読み込む（見た目はすべてここで管理） -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!--
+    .container はページ中央に表示される白いカード全体
+    中に「画面（screen）」を複数入れており、
+    JS が hidden クラスを付け外しすることで表示を切り替える
+  -->
   <div class="container">
 
-    <!-- ① ニックネーム入力 -->
+    <!-- ① ニックネーム入力画面
+         初回アクセス時に表示。テーブル番号を入力してもらう -->
     <div id="nickname-screen" class="screen hidden">
       <h1>クイズに参加する</h1>
       <p class="sub-text">ランキングに表示されるテーブル番号を入力してください。</p>
+      <!-- novalidate: ブラウザ標準のバリデーションを無効にして JS 側で制御する -->
       <form id="nickname-form" novalidate>
         <div class="field">
           <label for="nickname-input">テーブル番号</label>
+          <!-- maxlength: 最大12文字まで入力可 -->
           <input type="text" id="nickname-input" maxlength="12" placeholder="例：A" required />
         </div>
         <button type="submit" class="btn-primary">参加する</button>
       </form>
     </div>
 
-    <!-- ② 待機中 -->
+    <!-- ② 待機中画面
+         出題者が問題を選択するまで表示される -->
     <div id="waiting-screen" class="screen hidden">
       <div class="big-icon">⏳</div>
       <p class="screen-title">出題者が問題を準備中です…</p>
+      <!-- JS がここに「参加中：A」などのテーブル番号を表示する -->
       <p class="nickname-display" id="waiting-nickname"></p>
     </div>
 
-    <!-- ③ 回答入力 -->
+    <!-- ③ 回答入力画面
+         出題者が「回答開始」を押すと表示される -->
     <div id="question-screen" class="screen hidden">
+      <!-- JS が問題番号（1, 2, 3…）をここに入れる -->
       <div class="question-badge">Q<span id="q-number"></span></div>
+      <!-- JS が問題文をここに入れる -->
       <p id="q-text" class="question-text"></p>
       <form id="answer-form" novalidate>
         <div class="field">
           <label for="answer-input">あなたの回答（数値）</label>
+          <!--
+            type="number": 数値キーボードを表示
+            step="any": 小数も入力可
+            inputmode="decimal": スマホで小数点付きキーボードを出す
+          -->
           <input type="number" id="answer-input" step="any" inputmode="decimal"
-                 placeholder=""required />
+                 placeholder="" required />
         </div>
         <button type="submit" id="submit-btn" class="btn-primary">回答を送信する</button>
+        <!-- 送信結果のメッセージ（成功・エラー）を表示する場所 -->
+        <!-- aria-live: スクリーンリーダーに変化を通知するアクセシビリティ属性 -->
         <p id="answer-message" class="message" aria-live="polite"></p>
       </form>
     </div>
 
-    <!-- ④ 送信済み・集計待ち -->
+    <!-- ④ 送信済み・集計待ち画面
+         回答を送信した後に表示される -->
     <div id="submitted-screen" class="screen hidden">
       <div class="big-icon">✅</div>
       <p class="screen-title">回答を送信しました！</p>
       <p class="sub-text">結果発表をお待ちください…</p>
     </div>
 
-    <!-- ⑤ 締切（未回答） -->
+    <!-- ⑤ 締切画面（未回答のまま締め切られた場合）
+         回答しないうちに出題者が締切を押したときに表示 -->
     <div id="closed-screen" class="screen hidden">
       <div class="big-icon">🔒</div>
       <p class="screen-title">回答受付が終了しました</p>
       <p class="sub-text">結果発表をお待ちください…</p>
     </div>
 
-    <!-- ⑥ 結果発表 -->
+    <!-- ⑥ 結果発表画面
+         出題者が「結果を表示」を押すと全員に表示される -->
     <div id="results-screen" class="screen hidden">
       <div class="results-header">
         <span class="question-badge">Q<span id="res-q-number"></span></span>
         <h2>結果発表！</h2>
       </div>
+      <!-- 正解の数値を表示するボックス -->
       <div class="correct-answer-box">
         正解：<strong id="res-correct"></strong>
       </div>
+      <!-- 上位3名の表彰台（JS が動的に生成する） -->
       <div id="res-podium" class="podium"></div>
+      <!-- 自分の回答と順位（回答していた場合のみ表示） -->
       <div id="res-my-answer" class="my-answer-box hidden"></div>
+      <!-- 全員の回答一覧 -->
       <div class="all-answers-wrap">
         <p class="section-label">全回答一覧</p>
         <ul id="res-all-answers" class="answer-list"></ul>
       </div>
     </div>
 
-    <!-- ⑦ 総合ランキング -->
+    <!-- ⑦ 総合ランキング画面
+         出題者が「総合ランキング」を押すと全員に表示される -->
     <div id="ranking-screen" class="screen hidden">
       <div class="big-icon">🏆</div>
       <h2 class="screen-title">総合ランキング</h2>
+      <!-- JS がランキングのリストをここに生成する -->
       <ol id="ranking-list" class="ranking-list"></ol>
     </div>
 
   </div>
+
+  <!--
+    script タグは body の末尾に置く（HTML の描画が終わってから JS を実行するため）
+    config.js: Supabase の接続先 URL と API キーが入っている（ビルド時に自動生成）
+    script.js: このページの動作ロジックが入っている
+  -->
   <script src="config.js"></script>
   <script src="script.js"></script>
 </body>

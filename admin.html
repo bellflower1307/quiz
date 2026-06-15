@@ -7,48 +7,67 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!--
+    align-items:flex-start: 管理画面はカードを上揃えにする
+    （index.html は中央揃えだが、管理画面は縦に長いので上揃えが自然）
+  -->
   <div class="container" style="align-items:flex-start">
 
-    <!-- ログイン画面 -->
+    <!-- ===== ログイン画面 =====
+         ページを開いたときに最初に表示される。
+         auth.js がログイン済みを確認したら自動的に hidden になる -->
     <div id="login-screen" class="admin-wrap">
       <h1>管理者ログイン</h1>
       <p class="sub-text" style="margin-bottom:24px">クイズ出題者専用画面です。</p>
       <form id="login-form" novalidate>
         <div class="field">
           <label for="login-email">メールアドレス</label>
+          <!-- autocomplete="email": ブラウザのオートフィル（自動入力）を有効にする -->
           <input type="email" id="login-email" autocomplete="email" required />
         </div>
         <div class="field">
           <label for="login-password">パスワード</label>
+          <!-- autocomplete="current-password": パスワードマネージャーが使えるようにする -->
           <input type="password" id="login-password" autocomplete="current-password" required />
         </div>
         <button type="submit" class="btn-primary">ログイン</button>
+        <!-- ログイン失敗時のエラーメッセージ表示エリア -->
         <p id="login-error" class="message error" style="margin-top:12px"></p>
       </form>
     </div>
 
-    <!-- 管理コンテンツ（ログイン後に表示） -->
+    <!-- ===== 管理コンテンツ（ログイン後に表示） =====
+         初期状態は hidden。ログイン成功後に auth.js が hidden を外す -->
     <div id="admin-content" class="admin-wrap hidden">
+
+      <!-- タイトル行：左に見出し、右にログイン状態を表示 -->
       <div class="admin-title-row">
         <h1>出題者コントロール</h1>
+        <!-- ログイン状態インジケーター（緑ドット＋メールアドレス＋ログアウトボタン） -->
         <div class="auth-info">
-          <span class="auth-dot"></span>
-          <span id="auth-email" class="auth-email"></span>
+          <span class="auth-dot"></span><!-- 緑の丸（ログイン中を示す） -->
+          <span id="auth-email" class="auth-email"></span><!-- JS がメールアドレスを入れる -->
           <button id="btn-logout" class="btn-logout">ログアウト</button>
         </div>
       </div>
 
+      <!-- 現在のフェーズ（状態）と選択中の問題番号を表示するバー -->
       <div class="status-bar">
         <span>フェーズ：<span id="phase-badge" class="phase-badge phase-waiting">waiting</span></span>
         <span id="status-q">問題未選択</span>
       </div>
 
+      <!-- ===== 問題リスト =====
+           各 li をクリックすると選択状態になる。
+           data-num: 問題番号（JS が参照する）
+           data-text: 問題文（JS が Supabase に送る） -->
       <ul class="q-list" id="q-list">
         <li class="q-item" data-num="1" data-text="円周率を小数第2位まで答えてください（小数第2位まで）。">
           <div class="q-item-top">
             <span class="q-num-badge">1</span>
             <span class="q-text-label">円周率を答えてください（小数第2位まで）。</span>
           </div>
+          <!-- 正解の数値をここに入力する。JS が読み取ってポイント計算に使う -->
           <div class="correct-input-wrap">
             <label>正解：</label>
             <input type="number" class="correct-val" step="any" placeholder="3.14" />
@@ -86,19 +105,34 @@
         </li>
       </ul>
 
+      <!-- ===== 操作ボタン群 =====
+           フェーズに応じて JS が有効/無効を切り替える。
+           初期状態はすべて disabled（問題を選択するまで押せない） -->
       <div class="action-grid">
+        <!-- 回答受付を開始 → フェーズを "open" に変更 -->
         <button class="btn btn-open"    id="btn-open"    disabled>▶ 回答を開始する</button>
+        <!-- 回答を締め切る → フェーズを "closed" に変更 -->
         <button class="btn btn-close"   id="btn-close"   disabled>■ 回答を締め切る</button>
+        <!-- ポイント集計して結果表示 → フェーズを "results" に変更 -->
         <button class="btn btn-results" id="btn-results" disabled>📊 回答結果を表示する</button>
+        <!-- 総合ランキング表示 → フェーズを "ranking" に変更 -->
         <button class="btn btn-ranking" id="btn-ranking" disabled>🏆 総合ランキングを表示する</button>
+        <!-- 次の問題へ → フェーズを "waiting" に戻す -->
         <button class="btn btn-next"    id="btn-next"    disabled>➡ 次の問題へ（待機中に戻す）</button>
       </div>
 
+      <!-- JS が操作結果のメッセージ（「集計完了！」など）を表示する場所 -->
       <p class="admin-msg" id="admin-msg"></p>
     </div>
 
   </div>
 
+  <!--
+    config.js: Supabase の URL と API キー
+    auth.js: ログイン・ログアウト処理（両管理画面で共通）
+    admin.js: クイズ管理の動作ロジック
+    ※ 読み込み順が重要。config.js → auth.js → admin.js の順にする
+  -->
   <script src="config.js"></script>
   <script src="auth.js"></script>
   <script src="admin.js"></script>

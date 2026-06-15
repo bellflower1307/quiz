@@ -7,9 +7,15 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!--
+    ビンゴ参加者画面。画面の切り替えは JS（bingo.js）が行う。
+    3つの画面（テーブル番号入力 → カード生成 → カード表示）がある。
+  -->
   <div class="container">
 
-    <!-- テーブル番号入力（ビンゴ専用） -->
+    <!-- ===== テーブル番号入力画面 =====
+         クイズのニックネーム画面と同じ役割だが、ビンゴ専用。
+         localStorage のキーも "bingo_nickname" と別に管理している -->
     <div id="bingo-login-screen" class="screen hidden">
       <h1>ビンゴに参加する</h1>
       <p class="sub-text">ビンゴ用のテーブル番号を入力してください。</p>
@@ -22,32 +28,39 @@
       </form>
     </div>
 
-    <!-- カード未生成 -->
+    <!-- ===== カード未生成画面 =====
+         テーブル番号を入力した後、まだカードを作っていない場合に表示される。
+         ボタンを押すとランダムなビンゴカードが生成されて DB に保存される -->
     <div id="bingo-generate-screen" class="screen hidden">
       <div class="big-icon">🎲</div>
       <p class="screen-title">ビンゴカードを生成しよう</p>
+      <!-- JS がここに「テーブル：A」などのテーブル番号を表示する -->
       <p class="sub-text" id="bingo-nickname-label"></p>
       <button id="btn-generate" class="btn-primary" style="margin-top:8px">
         カードをランダム生成する
       </button>
     </div>
 
-    <!-- ビンゴカード -->
+    <!-- ===== ビンゴカード画面 =====
+         カード生成後に表示される。抽選番号が出るたびに自動でマスが塗られる -->
     <div id="bingo-card-screen" class="screen hidden">
+      <!-- 上部：テーブル番号とリーチ／ビンゴのステータスバッジ -->
       <div class="bingo-top">
+        <!-- JS が「テーブル：A」などを入れる -->
         <p class="bingo-player-name" id="bingo-player-name"></p>
+        <!-- リーチやビンゴになると JS がここに「🔥 リーチ！」などを表示する -->
         <div id="bingo-status-badge" class="bingo-status-badge hidden"></div>
       </div>
 
-      <!-- BINGO ヘッダー -->
+      <!-- BINGO の列ヘッダー（B / I / N / G / O） -->
       <div class="bingo-header">
         <span>B</span><span>I</span><span>N</span><span>G</span><span>O</span>
       </div>
 
-      <!-- 5×5 グリッド（JS で生成） -->
+      <!-- 5×5 マスのビンゴグリッド。中身は JS（bingo.js の renderGrid）が生成する -->
       <div id="bingo-grid" class="bingo-grid"></div>
 
-      <!-- 最新抽選番号 -->
+      <!-- 最新の抽選番号を表示するエリア（最初は hidden、抽選が始まると表示される） -->
       <div id="last-draw-box" class="last-draw-box hidden">
         最新の抽選番号：<strong id="last-draw-num"></strong>
       </div>
@@ -55,6 +68,10 @@
 
   </div>
 
+  <!--
+    config.js: Supabase の URL と API キー
+    bingo.js: ビンゴ参加者画面の動作ロジック
+  -->
   <script src="config.js"></script>
   <script src="bingo.js"></script>
 </body>

@@ -9,7 +9,9 @@
 <body>
   <div class="container" style="align-items:flex-start">
 
-    <!-- ログイン画面 -->
+    <!-- ===== ログイン画面 =====
+         ページを開いたときに最初に表示される。
+         auth.js がログイン済みを確認したら自動的に hidden になる -->
     <div id="login-screen" class="admin-wrap">
       <h1>管理者ログイン</h1>
       <p class="sub-text" style="margin-bottom:24px">ビンゴ抽選管理者専用画面です。</p>
@@ -23,48 +25,73 @@
           <input type="password" id="login-password" autocomplete="current-password" required />
         </div>
         <button type="submit" class="btn-primary">ログイン</button>
+        <!-- ログイン失敗時のエラーメッセージ表示エリア -->
         <p id="login-error" class="message error" style="margin-top:12px"></p>
       </form>
     </div>
 
-    <!-- 管理コンテンツ（ログイン後に表示） -->
+    <!-- ===== 管理コンテンツ（ログイン後に表示） =====
+         初期状態は hidden。ログイン成功後に auth.js が hidden を外す -->
     <div id="admin-content" class="admin-wrap hidden">
+
+      <!-- タイトル行：左に見出し、右にログイン状態を表示 -->
       <div class="admin-title-row">
         <h1>ビンゴ抽選管理</h1>
+        <!-- ログイン状態インジケーター -->
         <div class="auth-info">
-          <span class="auth-dot"></span>
-          <span id="auth-email" class="auth-email"></span>
+          <span class="auth-dot"></span><!-- 緑の丸（ログイン中を示す） -->
+          <span id="auth-email" class="auth-email"></span><!-- JS がメールアドレスを入れる -->
           <button id="btn-logout" class="btn-logout">ログアウト</button>
         </div>
       </div>
 
-      <!-- ビンゴ・リーチ通知 -->
+      <!-- ===== ビンゴ・リーチ通知パネル =====
+           5秒ごとに DB を確認し、当日分のカードでビンゴ・リーチになった
+           参加者を自動表示する（bingo-admin.js の refreshNotifications が更新） -->
       <div class="ba-notifications">
+        <!-- JS が「🎉 ビンゴ（2名）テーブルA（1ライン）…」のように生成する -->
         <div id="ba-bingo-list" class="ba-notify-section"></div>
+        <!-- JS が「🔥 リーチ（3名）テーブルB（2ライン）…」のように生成する -->
         <div id="ba-reach-list" class="ba-notify-section"></div>
       </div>
 
+      <!-- ===== 最新抽選番号の表示エリア ===== -->
       <div class="ba-current-box">
         <p class="ba-current-label">最新の抽選番号</p>
+        <!-- JS が抽選するたびにここの数字を更新する -->
         <div id="ba-current-num" class="ba-current-num">—</div>
+        <!-- 「12 / 75 抽選済み」のように抽選済み数を表示 -->
         <p id="ba-drawn-count" class="ba-drawn-count">0 / 75 抽選済み</p>
       </div>
 
+      <!-- 抽選ボタン：押すと 1〜75 の未抽選番号からランダムに1つ選ぶ -->
       <button id="btn-draw" class="btn-primary ba-draw-btn">🎲 次の番号を抽選する</button>
 
+      <!-- ===== 全番号グリッド（1〜75） =====
+           B列（1-15）/ I列（16-30）/ N列（31-45）/ G列（46-60）/ O列（61-75）
+           抽選された番号は暗い色に変わる（JS の markCell が更新する） -->
       <div class="ba-grid-wrap">
+        <!-- B I N G O の列ヘッダー -->
         <div class="ba-col-headers">
           <span>B</span><span>I</span><span>N</span><span>G</span><span>O</span>
         </div>
+        <!-- 75マスのグリッド。中身は JS（buildGrid）が動的に生成する -->
         <div id="ba-num-grid" class="ba-num-grid"></div>
       </div>
 
+      <!-- リセットボタン：確認ダイアログ後に全抽選履歴を DB から削除する -->
       <button id="btn-reset" class="btn ba-reset-btn">🗑 抽選をリセットする</button>
+      <!-- JS が操作結果のメッセージを表示する場所 -->
       <p class="admin-msg" id="ba-msg"></p>
     </div>
 
   </div>
 
+  <!--
+    config.js: Supabase の URL と API キー
+    auth.js: ログイン・ログアウト処理（クイズ管理画面と共通）
+    bingo-admin.js: ビンゴ抽選管理の動作ロジック
+  -->
   <script src="config.js"></script>
   <script src="auth.js"></script>
   <script src="bingo-admin.js"></script>
