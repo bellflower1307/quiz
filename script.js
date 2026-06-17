@@ -323,18 +323,19 @@ async function renderResults(questionNumber, correctAnswer) {
 
   // 表彰台（上位3名）を生成
   const medals  = ['🥇', '🥈', '🥉'];
-  const ptLabels = ['+3pt', '+2pt', '+1pt'];
+  const total   = answers.length; // 回答者数（1位のポイント）
   const podium  = document.getElementById('res-podium');
   podium.innerHTML = '';
   answers.slice(0, 3).forEach((a, i) => {
     const div = document.createElement('div');
     div.className = `podium-item rank-${i + 1}`;
     const diff = Math.abs(a.value - correctAnswer);
+    const pts  = total - i; // 1位: total pt, 2位: total-1 pt, 3位: total-2 pt
     div.innerHTML = `
       <span class="podium-medal">${medals[i]}</span>
       <span class="podium-nick">${escHtml(a.nickname)}</span>
       <span class="podium-value">${a.value}（差：${diff.toFixed(4).replace(/\.?0+$/, '')}）</span>
-      <span class="podium-pts">${ptLabels[i]}</span>
+      <span class="podium-pts">+${pts}pt</span>
     `;
     podium.appendChild(div);
   });
@@ -343,10 +344,11 @@ async function renderResults(questionNumber, correctAnswer) {
   const myBox = document.getElementById('res-my-answer');
   if (submittedAnswer !== null) {
     const myRank = answers.findIndex((a) => a.participant_id === participantId);
-    const pts    = myRank === 0 ? 3 : myRank === 1 ? 2 : myRank === 2 ? 1 : 0;
-    myBox.textContent = pts > 0
-      ? `あなたの回答：${submittedAnswer}　→　${['🥇 1位', '🥈 2位', '🥉 3位'][myRank]}（+${pts}pt）`
-      : `あなたの回答：${submittedAnswer}　（${myRank + 1}位）`;
+    const pts    = myRank >= 0 ? total - myRank : 0;
+    const rankLabel = myRank === 0 ? '🥇 1位' : myRank === 1 ? '🥈 2位' : myRank === 2 ? '🥉 3位' : `${myRank + 1}位`;
+    myBox.textContent = myRank >= 0
+      ? `あなたの回答：${submittedAnswer}　→　${rankLabel}（+${pts}pt）`
+      : `あなたの回答：${submittedAnswer}`;
     myBox.classList.remove('hidden');
   } else {
     myBox.classList.add('hidden');

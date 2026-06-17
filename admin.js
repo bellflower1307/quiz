@@ -234,7 +234,7 @@ btnClose.addEventListener('click', async () => {
 });
 
 // 「回答結果を表示する」→ ポイントを集計して results フェーズへ
-// 上位3名（1位:3pt / 2位:2pt / 3位:1pt）にポイントを付与する
+// 1位: 参加者数pt、2位: 参加者数-1pt、…最下位: 1pt（全員にポイント付与）
 btnResults.addEventListener('click', async () => {
   setAllButtonsDisabled(true);
   setMsg('ポイントを集計中…');
@@ -256,14 +256,16 @@ btnResults.addEventListener('click', async () => {
     // 正解との差が小さい順にソート
     answers.sort((a, b) => Math.abs(a.value - correct) - Math.abs(b.value - correct));
 
-    const ptMap = [3, 2, 1]; // 1位: 3pt, 2位: 2pt, 3位: 1pt
-    for (let i = 0; i < Math.min(3, answers.length); i++) {
-      const a = answers[i];
-      const p = await fetchParticipant(a.participant_id);
+    // 1位: N pt, 2位: N-1 pt, … 最下位: 1 pt（N = 回答者数）
+    const total = answers.length;
+    for (let i = 0; i < total; i++) {
+      const pts = total - i; // 1位なら total、最下位なら 1
+      const a   = answers[i];
+      const p   = await fetchParticipant(a.participant_id);
       // 回答のポイント更新 と 参加者の累計ポイント更新 を並行実行
       await Promise.all([
-        patchAnswerPoints(a.id, ptMap[i]),
-        patchParticipantPoints(a.participant_id, (p?.total_points ?? 0) + ptMap[i]),
+        patchAnswerPoints(a.id, pts),
+        patchParticipantPoints(a.participant_id, (p?.total_points ?? 0) + pts),
       ]);
     }
 
