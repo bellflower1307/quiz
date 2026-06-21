@@ -91,6 +91,102 @@ async function patchParticipantPoints(id, newTotal) {
   });
 }
 
+// 当日の answers から参加者ごとのポイントを集計してランキングを返す
+async function fetchRanking() {
+  const rows = await apiFetch(
+    `/rest/v1/answers?submitted_at=gte.${todayStartISO()}&select=participant_id,nickname,points_earned`
+  ) ?? [];
+  const map = new Map();
+  for (const row of rows) {
+    if (!map.has(row.participant_id)) {
+      map.set(row.participant_id, { nickname: row.nickname, total_points: 0 });
+    }
+    map.get(row.participant_id).total_points += row.points_earned;
+  }
+  return [...map.values()].sort((a, b) => b.total_points - a.total_points);
+}
+
+// XSS 対策：ユーザー入力を HTML として解釈させないようにエスケープする
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ============================================================
+// プレビュー描画
+// ============================================================
+
+// 結果プレビューを描画する（btnResults 押下後に呼ぶ）
+function renderResultsPreview(answers, correctAnswer) {
+  const preview = document.getElementById('admin-preview');
+  const resDiv  = document.getElementById('admin-results-preview');
+  const rankDiv = document.getElementById('admin-ranking-preview');
+  preview.classList.remove('hidden');
+  resDiv.classList.remove('hidden');
+  rankDiv.classList.add('hidden');
+
+  document.getElementById('adm-res-correct').textContent = correctAnswer;
+
+  const medals  = ['🥇', '🥈', '🥉'];
+  const total   = answers.length;
+  const podium  = document.getElementById('adm-res-podium');
+  podium.innerHTML = '';
+  answers.slice(0, 3).forEach((a, i) => {
+    const div  = document.createElement('div');
+    div.className = `podium-item rank-${i + 1}`;
+    const diff = Math.abs(a.value - correctAnswer);
+    const pts  = total - i;
+    div.innerHTML = `
+      <span class="podium-medal">${medals[i]}</span>
+      <span class="podium-nick">${escHtml(a.nickname)}</span>
+      <span class="podium-value">${a.value}（差：${diff.toFixed(4).replace(/\.?0+$/, '')}）</span>
+      <span class="podium-pts">+${pts}pt</span>
+    `;
+    podium.appendChild(div);
+  });
+
+  const list = document.getElementById('adm-res-all-answers');
+  list.innerHTML = '';
+  answers.forEach((a) => {
+    const li   = document.createElement('li');
+    const diff = Math.abs(a.value - correctAnswer);
+    li.innerHTML = `
+      <span>${escHtml(a.nickname)}</span>
+      <span>${a.value}</span>
+      <span class="answer-diff">差 ${diff.toFixed(4).replace(/\.?0+$/, '')}</span>
+    `;
+    list.appendChild(li);
+  });
+}
+
+// ランキングプレビューを描画する（btnRanking 押下後に呼ぶ）
+async function renderRankingPreview() {
+  const preview = document.getElementById('admin-preview');
+  const resDiv  = document.getElementById('admin-results-preview');
+  const rankDiv = document.getElementById('admin-ranking-preview');
+  preview.classList.remove('hidden');
+  resDiv.classList.add('hidden');
+  rankDiv.classList.remove('hidden');
+
+  const participants = await fetchRanking();
+  const list = document.getElementById('adm-ranking-list');
+  list.innerHTML = '';
+  if (!participants.length) {
+    list.innerHTML = '<li style="color:#a0aec0;text-align:center">データがありません</li>';
+    return;
+  }
+  participants.forEach((p, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span class="rank-num">${i + 1}</span>
+      <span class="rank-nick">${escHtml(p.nickname)}</span>
+      <span class="rank-pts">${p.total_points}pt</span>
+    `;
+    list.appendChild(li);
+  });
+}
+
 // ============================================================
 // UI 要素への参照
 //
@@ -272,6 +368,7 @@ btnResults.addEventListener('click', async () => {
     await patchQuizState({ phase: 'results' });
     setMsg('集計完了！参加者画面に結果を表示しました。');
     applyState(await fetchQuizState());
+    renderResultsPreview(answers, correct);
   } catch (err) {
     setMsg('エラー：' + err.message);
     applyState(await fetchQuizState());
@@ -286,6 +383,7 @@ btnRanking.addEventListener('click', async () => {
     await patchQuizState({ phase: 'ranking' });
     setMsg('ランキングを表示しました。');
     applyState(await fetchQuizState());
+    await renderRankingPreview();
   } catch (err) {
     setMsg('エラー：' + err.message);
     applyState(await fetchQuizState());

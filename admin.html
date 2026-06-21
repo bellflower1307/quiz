@@ -123,6 +123,29 @@
 
       <!-- JS が操作結果のメッセージ（「集計完了！」など）を表示する場所 -->
       <p class="admin-msg" id="admin-msg"></p>
+
+      <!-- ===== 結果プレビュー =====
+           「結果を表示」または「総合ランキングを表示」を押したときに
+           参加者と同じ内容を管理者画面にも表示する -->
+      <div id="admin-preview" class="admin-preview hidden">
+        <!-- 問題結果（results フェーズ） -->
+        <div id="admin-results-preview" class="hidden">
+          <p class="admin-preview-label">📊 結果プレビュー</p>
+          <div class="correct-answer-box">
+            正解：<strong id="adm-res-correct"></strong>
+          </div>
+          <div id="adm-res-podium" class="podium"></div>
+          <div class="all-answers-wrap">
+            <p class="section-label">全回答一覧</p>
+            <ul id="adm-res-all-answers" class="answer-list"></ul>
+          </div>
+        </div>
+        <!-- 総合ランキング（ranking フェーズ） -->
+        <div id="admin-ranking-preview" class="hidden">
+          <p class="admin-preview-label">🏆 ランキングプレビュー</p>
+          <ol id="adm-ranking-list" class="ranking-list"></ol>
+        </div>
+      </div>
     </div>
 
   </div>
