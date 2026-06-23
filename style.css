@@ -287,7 +287,51 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   font-size: .8rem; font-weight: 700;
 }
 .q-item.active .q-num-badge { background: #312e81; } /* 選択中は濃い紫 */
-.q-text-label { font-size: .9rem; color: #2d3748; line-height: 1.5; }
+/* 「問題を追加する」ボタン */
+.btn-add-question {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 16px;
+  background: none;
+  border: 1px dashed #a0aec0;
+  border-radius: 8px;
+  font-size: .875rem;
+  color: #718096;
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.btn-add-question:hover { border-color: #4f46e5; color: #4f46e5; }
+
+/* 各問題行の削除ボタン（×） */
+.btn-delete-question {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  font-size: .75rem;
+  color: #a0aec0;
+  cursor: pointer;
+  line-height: 1;
+  transition: border-color .2s, color .2s, background .2s;
+}
+.btn-delete-question:hover { border-color: #e53e3e; color: #fff; background: #e53e3e; }
+
+/* 問題文入力欄（q-text-label の代わりに使う自由入力フィールド） */
+.q-text-input {
+  flex: 1;
+  padding: 5px 10px;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: .9rem;
+  color: #2d3748;
+  outline: none;
+  min-width: 0; /* flex 内で縮みすぎないよう */
+}
+.q-text-input:focus { border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79,70,229,.1); }
+.q-item.active .q-text-input { border-color: #4f46e5; }
 
 /* 正解入力欄（問題リスト内の小さなフォーム） */
 .correct-input-wrap { display: flex; align-items: center; gap: 8px; }

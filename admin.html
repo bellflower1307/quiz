@@ -58,52 +58,11 @@
       </div>
 
       <!-- ===== 問題リスト =====
-           各 li をクリックすると選択状態になる。
-           data-num: 問題番号（JS が参照する）
-           data-text: 問題文（JS が Supabase に送る） -->
-      <ul class="q-list" id="q-list">
-        <li class="q-item" data-num="1" data-text="円周率を小数第2位まで答えてください（小数第2位まで）。">
-          <div class="q-item-top">
-            <span class="q-num-badge">1</span>
-            <span class="q-text-label">円周率を答えてください（小数第2位まで）。</span>
-          </div>
-          <!-- 正解の数値をここに入力する。JS が読み取ってポイント計算に使う -->
-          <div class="correct-input-wrap">
-            <label>正解：</label>
-            <input type="number" class="correct-val" step="any" placeholder="3.14" />
-          </div>
-        </li>
-        <li class="q-item" data-num="2" data-text="地球から月までの距離は何万kmですか？（小数第2位まで）">
-          <div class="q-item-top">
-            <span class="q-num-badge">2</span>
-            <span class="q-text-label">地球から月までの距離は何万kmですか？（小数第2位まで）</span>
-          </div>
-          <div class="correct-input-wrap">
-            <label>正解：</label>
-            <input type="number" class="correct-val" step="any" placeholder="38.44" />
-          </div>
-        </li>
-        <li class="q-item" data-num="3" data-text="光の速さは秒速何万kmですか？（小数第2位まで）">
-          <div class="q-item-top">
-            <span class="q-num-badge">3</span>
-            <span class="q-text-label">光の速さは秒速何万kmですか？（小数第2位まで）</span>
-          </div>
-          <div class="correct-input-wrap">
-            <label>正解：</label>
-            <input type="number" class="correct-val" step="any" placeholder="29.98" />
-          </div>
-        </li>
-        <li class="q-item" data-num="4" data-text="日本一長い川は何kmですか？（整数で回答）">
-          <div class="q-item-top">
-            <span class="q-num-badge">4</span>
-            <span class="q-text-label">日本一長い川は何kmですか？（整数で回答）</span>
-          </div>
-          <div class="correct-input-wrap">
-            <label>正解：</label>
-            <input type="number" class="correct-val" step="any" placeholder="367" />
-          </div>
-        </li>
-      </ul>
+           問題は JS（admin.js の addQuestion）で動的に追加・削除できる。
+           問題文は HTML に書かず当日に入力する（個人情報をコードに残さないため） -->
+      <ul class="q-list" id="q-list"></ul>
+      <!-- 問題を追加するボタン -->
+      <button type="button" id="btn-add-question" class="btn-add-question">＋ 問題を追加する</button>
 
       <!-- ===== 操作ボタン群 =====
            フェーズに応じて JS が有効/無効を切り替える。

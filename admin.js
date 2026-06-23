@@ -91,6 +91,31 @@ async function patchParticipantPoints(id, newTotal) {
   });
 }
 
+// ============================================================
+// タイを考慮したランク・ポイント計算（admin/preview 共通ヘルパー）
+//
+// answers は「正解との差」昇順でソート済みであること。
+// 同差の参加者には同じ rank と pts を付与し、
+// 次のグループの rank はタイ人数分だけ飛ばす。
+// ============================================================
+function assignRanksAndPoints(answers, correct, total) {
+  let idx = 0;
+  while (idx < total) {
+    const diff = Math.abs(answers[idx].value - correct);
+    // 同差のグループの末尾を探す
+    let end = idx;
+    while (end < total && Math.abs(answers[end].value - correct) === diff) end++;
+    // このグループの rank = idx+1、pts = total - idx（グループ先頭の順位相当）
+    const rank = idx + 1;
+    const pts  = total - idx;
+    for (let k = idx; k < end; k++) {
+      answers[k].rank = rank;
+      answers[k].pts  = pts;
+    }
+    idx = end;
+  }
+}
+
 // 当日の answers から参加者ごとのポイントを集計してランキングを返す
 async function fetchRanking() {
   const rows = await apiFetch(
@@ -118,6 +143,7 @@ function escHtml(str) {
 // ============================================================
 
 // 結果プレビューを描画する（btnResults 押下後に呼ぶ）
+// answers には assignRanksAndPoints で .rank / .pts が付与済みであること
 function renderResultsPreview(answers, correctAnswer) {
   const preview = document.getElementById('admin-preview');
   const resDiv  = document.getElementById('admin-results-preview');
@@ -128,20 +154,19 @@ function renderResultsPreview(answers, correctAnswer) {
 
   document.getElementById('adm-res-correct').textContent = correctAnswer;
 
-  const medals  = ['🥇', '🥈', '🥉'];
-  const total   = answers.length;
-  const podium  = document.getElementById('adm-res-podium');
+  // 表彰台（rank 1〜3 に該当する人を全員表示）
+  const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' };
+  const podium = document.getElementById('adm-res-podium');
   podium.innerHTML = '';
-  answers.slice(0, 3).forEach((a, i) => {
+  answers.filter(a => a.rank <= 3).forEach((a) => {
     const div  = document.createElement('div');
-    div.className = `podium-item rank-${i + 1}`;
+    div.className = `podium-item rank-${Math.min(a.rank, 3)}`;
     const diff = Math.abs(a.value - correctAnswer);
-    const pts  = total - i;
     div.innerHTML = `
-      <span class="podium-medal">${medals[i]}</span>
+      <span class="podium-medal">${MEDAL[a.rank] ?? ''}</span>
       <span class="podium-nick">${escHtml(a.nickname)}</span>
       <span class="podium-value">${a.value}（差：${diff.toFixed(4).replace(/\.?0+$/, '')}）</span>
-      <span class="podium-pts">+${pts}pt</span>
+      <span class="podium-pts">+${a.pts}pt</span>
     `;
     podium.appendChild(div);
   });
@@ -151,10 +176,11 @@ function renderResultsPreview(answers, correctAnswer) {
   answers.forEach((a) => {
     const li   = document.createElement('li');
     const diff = Math.abs(a.value - correctAnswer);
+    const tie  = answers.filter(x => x.rank === a.rank).length > 1 ? '（タイ）' : '';
     li.innerHTML = `
-      <span>${escHtml(a.nickname)}</span>
+      <span>${a.rank}位${tie} ${escHtml(a.nickname)}</span>
       <span>${a.value}</span>
-      <span class="answer-diff">差 ${diff.toFixed(4).replace(/\.?0+$/, '')}</span>
+      <span class="answer-diff">差 ${diff.toFixed(4).replace(/\.?0+$/, '')} +${a.pts}pt</span>
     `;
     list.appendChild(li);
   });
@@ -193,26 +219,26 @@ async function renderRankingPreview() {
 // document.getElementById() で HTML の要素を取得して変数に入れておくと
 // 後から何度でも使い回せる（毎回検索するより効率的）
 // ============================================================
-const phaseBadge = document.getElementById('phase-badge'); // フェーズ表示バッジ
-const statusQ    = document.getElementById('status-q');    // 「Q1」などの問題番号表示
-const qItems     = document.querySelectorAll('.q-item');   // 問題リストの全行
-const btnOpen    = document.getElementById('btn-open');    // 「回答を開始する」ボタン
-const btnClose   = document.getElementById('btn-close');   // 「回答を締め切る」ボタン
-const btnResults = document.getElementById('btn-results'); // 「回答結果を表示する」ボタン
-const btnRanking = document.getElementById('btn-ranking'); // 「総合ランキングを表示する」ボタン
-const btnNext    = document.getElementById('btn-next');    // 「次の問題へ」ボタン
-const adminMsg   = document.getElementById('admin-msg');   // メッセージ表示エリア
+const phaseBadge = document.getElementById('phase-badge');
+const statusQ    = document.getElementById('status-q');
+const btnOpen    = document.getElementById('btn-open');
+const btnClose   = document.getElementById('btn-close');
+const btnResults = document.getElementById('btn-results');
+const btnRanking = document.getElementById('btn-ranking');
+const btnNext    = document.getElementById('btn-next');
+const adminMsg   = document.getElementById('admin-msg');
+const qList      = document.getElementById('q-list');
 
-let currentState    = null; // 現在の quiz_state（ボタン有効/無効の判定に使う）
-let selectedNum     = null; // 選択中の問題番号
-let selectedText    = null; // 選択中の問題文
-let selectedCorrect = null; // 選択中の問題の正解値
+let currentState    = null;
+let selectedNum     = null;
+let selectedText    = null;
+let selectedCorrect = null;
+
+// 現在の全問題行を取得（動的に増減するので都度取得する）
+function getQItems() { return [...qList.querySelectorAll('.q-item')]; }
 
 // ============================================================
 // 状態を画面に反映する
-//
-// フェーズに応じてボタンの有効/無効を切り替える。
-// 例：「open（受付中）」のとき「回答を開始する」は押せない（すでに開始済み）
 // ============================================================
 const PHASE_LABELS = {
   waiting: '待機中', open: '受付中', closed: '締切済',
@@ -222,72 +248,118 @@ const PHASE_LABELS = {
 function applyState(state) {
   currentState = state;
   const phase  = state.phase;
-
-  // フェーズバッジのテキストとスタイルを更新
   phaseBadge.textContent = PHASE_LABELS[phase] ?? phase;
   phaseBadge.className   = `phase-badge phase-${phase}`;
-
-  // 現在の問題番号を表示
   statusQ.textContent    = state.question_number ? `Q${state.question_number}` : '問題未選択';
-
-  // 現在進行中の問題をリストでハイライト
-  qItems.forEach((el) => el.classList.toggle('active', Number(el.dataset.num) === state.question_number));
-
-  // フェーズと選択状態に応じてボタンの有効/無効を設定
-  btnOpen.disabled    = selectedNum === null || selectedCorrect === null || phase === 'open';
-  btnClose.disabled   = phase !== 'open';    // 受付中のときだけ締め切れる
-  btnResults.disabled = phase !== 'closed';  // 締切済のときだけ結果を表示できる
-  btnRanking.disabled = phase !== 'results'; // 結果表示中のときだけランキングを表示できる
-  btnNext.disabled    = phase === 'waiting' || phase === 'open'; // 待機中・受付中は次へ進めない
+  getQItems().forEach((el) => el.classList.toggle('active', Number(el.dataset.num) === state.question_number));
+  btnOpen.disabled    = selectedNum === null || !selectedText || selectedCorrect === null || phase === 'open';
+  btnClose.disabled   = phase !== 'open';
+  btnResults.disabled = phase !== 'closed';
+  btnRanking.disabled = phase !== 'results';
+  btnNext.disabled    = phase === 'waiting' || phase === 'open';
 }
 
 function setMsg(text) { adminMsg.textContent = text; }
 
-// すべてのボタンをまとめて有効/無効にする（通信中は操作を止めるために使う）
 function setAllButtonsDisabled(val) {
   [btnOpen, btnClose, btnResults, btnRanking, btnNext].forEach((b) => b.disabled = val);
 }
 
 // ============================================================
-// 問題クリック → 選択
-//
-// li.q-item をクリックすると「選択中」の問題として扱う。
-// data-num, data-text を JS で読み取り、「回答を開始する」ボタンに渡す。
+// 問題の動的追加・削除
 // ============================================================
-qItems.forEach((item) => {
+
+// 選択中の問題から問題文・正解を読み取るヘルパー
+function readSelectedInputs(item) {
+  selectedText    = item.querySelector('.q-text-input')?.value.trim() || null;
+  const rawVal    = item.querySelector('.correct-val')?.value.trim();
+  selectedCorrect = rawVal !== '' && !isNaN(Number(rawVal)) ? Number(rawVal) : null;
+}
+
+function selectedMsg() {
+  if (!selectedText)    return `Q${selectedNum} を選択（問題文を入力してください）`;
+  if (!selectedCorrect) return `Q${selectedNum} を選択（正解の値を入力してください）`;
+  return `Q${selectedNum} を選択（問題文・正解入力済み）`;
+}
+
+// 問題番号バッジと data-num を 1 から振り直す
+function renumberQuestions() {
+  getQItems().forEach((el, i) => {
+    const n = i + 1;
+    el.dataset.num = n;
+    el.querySelector('.q-num-badge').textContent = n;
+    // 選択中の問題が番号変更で追えなくなるのを防ぐ
+    if (el.classList.contains('active')) selectedNum = n;
+  });
+}
+
+// 問題行を1つ生成して q-list に追加し、イベントも登録する
+function addQuestion() {
+  const num  = getQItems().length + 1;
+  const item = document.createElement('li');
+  item.className    = 'q-item';
+  item.dataset.num  = num;
+  item.innerHTML = `
+    <div class="q-item-top">
+      <span class="q-num-badge">${num}</span>
+      <input type="text" class="q-text-input" placeholder="問題文を入力してください" />
+      <button type="button" class="btn-delete-question" title="この問題を削除">✕</button>
+    </div>
+    <div class="correct-input-wrap">
+      <label>正解：</label>
+      <input type="number" class="correct-val" step="any" placeholder="数値" />
+    </div>
+  `;
+
+  // li 全体クリック → 選択
   item.addEventListener('click', () => {
-    // 全アイテムから active クラスを外して、クリックされたものだけに付ける
-    qItems.forEach((el) => el.classList.remove('active'));
+    getQItems().forEach((el) => el.classList.remove('active'));
     item.classList.add('active');
-
-    selectedNum  = Number(item.dataset.num);
-    selectedText = item.dataset.text;
-
-    // 正解入力欄の値を読み取る（空または数値以外なら null にする）
-    const input  = item.querySelector('.correct-val');
-    const rawVal = input?.value.trim();
-    selectedCorrect = rawVal !== '' && !isNaN(Number(rawVal)) ? Number(rawVal) : null;
-
+    selectedNum = Number(item.dataset.num);
+    readSelectedInputs(item);
     applyState(currentState);
-    setMsg(selectedCorrect !== null
-      ? `Q${selectedNum} を選択（正解：${selectedCorrect}）`
-      : `Q${selectedNum} を選択（正解の値を入力してください）`
-    );
+    setMsg(selectedMsg());
   });
 
-  // 正解入力欄に値を入力したらリアルタイムで selectedCorrect を更新する
-  const input = item.querySelector('.correct-val');
-  input?.addEventListener('input', () => {
-    if (selectedNum !== Number(item.dataset.num)) return; // 選択中の問題だけ処理
-    const val = input.value.trim();
-    selectedCorrect = val !== '' && !isNaN(Number(val)) ? Number(val) : null;
+  // 問題文・正解入力 → リアルタイム反映
+  item.querySelector('.q-text-input').addEventListener('input', () => {
+    if (selectedNum !== Number(item.dataset.num)) return;
+    readSelectedInputs(item);
     applyState(currentState);
-    setMsg(selectedCorrect !== null
-      ? `Q${selectedNum} 正解：${selectedCorrect}`
-      : `Q${selectedNum} 正解の値を入力してください`
-    );
+    setMsg(selectedMsg());
   });
+  item.querySelector('.correct-val').addEventListener('input', () => {
+    if (selectedNum !== Number(item.dataset.num)) return;
+    readSelectedInputs(item);
+    applyState(currentState);
+    setMsg(selectedMsg());
+  });
+
+  // 削除ボタン
+  item.querySelector('.btn-delete-question').addEventListener('click', (e) => {
+    e.stopPropagation(); // li のクリックイベントへ伝播しないようにする
+    if (getQItems().length <= 1) { setMsg('問題は最低1つ必要です。'); return; }
+    if (selectedNum === Number(item.dataset.num)) {
+      // 削除する問題が選択中の場合は選択を解除する
+      selectedNum = null; selectedText = null; selectedCorrect = null;
+    }
+    item.remove();
+    renumberQuestions();
+    applyState(currentState);
+    setMsg('問題を削除しました。');
+  });
+
+  qList.appendChild(item);
+}
+
+// 「問題を追加する」ボタン
+document.getElementById('btn-add-question').addEventListener('click', () => {
+  addQuestion();
+  setMsg(`Q${getQItems().length} を追加しました。問題文と正解を入力してください。`);
 });
+
+// 初期表示：4問を生成する
+for (let i = 0; i < 4; i++) addQuestion();
 
 // ============================================================
 // ボタンイベント
@@ -352,16 +424,17 @@ btnResults.addEventListener('click', async () => {
     // 正解との差が小さい順にソート
     answers.sort((a, b) => Math.abs(a.value - correct) - Math.abs(b.value - correct));
 
-    // 1位: N pt, 2位: N-1 pt, … 最下位: 1 pt（N = 回答者数）
+    // タイを考慮したランク・ポイント付与
+    // 差が等しい参加者は同順位・同ポイントにする
+    // 例）5人中 2位タイが2人 → 両者に 4pt（2位相当）を付与し、次の人は 4位（2pt）
     const total = answers.length;
-    for (let i = 0; i < total; i++) {
-      const pts = total - i; // 1位なら total、最下位なら 1
-      const a   = answers[i];
-      const p   = await fetchParticipant(a.participant_id);
-      // 回答のポイント更新 と 参加者の累計ポイント更新 を並行実行
+    assignRanksAndPoints(answers, correct, total);
+
+    for (const a of answers) {
+      const p = await fetchParticipant(a.participant_id);
       await Promise.all([
-        patchAnswerPoints(a.id, pts),
-        patchParticipantPoints(a.participant_id, (p?.total_points ?? 0) + pts),
+        patchAnswerPoints(a.id, a.pts),
+        patchParticipantPoints(a.participant_id, (p?.total_points ?? 0) + a.pts),
       ]);
     }
 

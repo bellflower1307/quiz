@@ -321,21 +321,32 @@ async function renderResults(questionNumber, correctAnswer) {
   // 正解との差が小さい順にソート
   answers.sort((a, b) => Math.abs(a.value - correctAnswer) - Math.abs(b.value - correctAnswer));
 
-  // 表彰台（上位3名）を生成
-  const medals  = ['🥇', '🥈', '🥉'];
-  const total   = answers.length; // 回答者数（1位のポイント）
-  const podium  = document.getElementById('res-podium');
+  // タイを考慮したランク・ポイント付与（admin.js と同じロジック）
+  const total = answers.length;
+  let idx = 0;
+  while (idx < total) {
+    const diff = Math.abs(answers[idx].value - correctAnswer);
+    let end = idx;
+    while (end < total && Math.abs(answers[end].value - correctAnswer) === diff) end++;
+    const rank = idx + 1;
+    const pts  = total - idx;
+    for (let k = idx; k < end; k++) { answers[k].rank = rank; answers[k].pts = pts; }
+    idx = end;
+  }
+
+  // 表彰台（rank 1〜3 に該当する人を全員表示）
+  const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' };
+  const podium = document.getElementById('res-podium');
   podium.innerHTML = '';
-  answers.slice(0, 3).forEach((a, i) => {
+  answers.filter(a => a.rank <= 3).forEach((a) => {
     const div = document.createElement('div');
-    div.className = `podium-item rank-${i + 1}`;
+    div.className = `podium-item rank-${Math.min(a.rank, 3)}`;
     const diff = Math.abs(a.value - correctAnswer);
-    const pts  = total - i; // 1位: total pt, 2位: total-1 pt, 3位: total-2 pt
     div.innerHTML = `
-      <span class="podium-medal">${medals[i]}</span>
+      <span class="podium-medal">${MEDAL[a.rank] ?? ''}</span>
       <span class="podium-nick">${escHtml(a.nickname)}</span>
       <span class="podium-value">${a.value}（差：${diff.toFixed(4).replace(/\.?0+$/, '')}）</span>
-      <span class="podium-pts">+${pts}pt</span>
+      <span class="podium-pts">+${a.pts}pt</span>
     `;
     podium.appendChild(div);
   });
@@ -343,13 +354,15 @@ async function renderResults(questionNumber, correctAnswer) {
   // 自分の回答と獲得ポイントを表示
   const myBox = document.getElementById('res-my-answer');
   if (submittedAnswer !== null) {
-    const myRank = answers.findIndex((a) => a.participant_id === participantId);
-    const pts    = myRank >= 0 ? total - myRank : 0;
-    const rankLabel = myRank === 0 ? '🥇 1位' : myRank === 1 ? '🥈 2位' : myRank === 2 ? '🥉 3位' : `${myRank + 1}位`;
-    myBox.textContent = myRank >= 0
-      ? `あなたの回答：${submittedAnswer}　→　${rankLabel}（+${pts}pt）`
-      : `あなたの回答：${submittedAnswer}`;
-    myBox.classList.remove('hidden');
+    const me = answers.find((a) => a.participant_id === participantId);
+    if (me) {
+      const tie       = answers.filter(x => x.rank === me.rank).length > 1 ? 'タイ ' : '';
+      const medalLabel = MEDAL[me.rank] ? `${MEDAL[me.rank]} ` : '';
+      myBox.textContent = `あなたの回答：${submittedAnswer}　→　${medalLabel}${tie}${me.rank}位（+${me.pts}pt）`;
+      myBox.classList.remove('hidden');
+    } else {
+      myBox.classList.add('hidden');
+    }
   } else {
     myBox.classList.add('hidden');
   }
@@ -361,11 +374,12 @@ async function renderResults(questionNumber, correctAnswer) {
     const li   = document.createElement('li');
     const diff = Math.abs(a.value - correctAnswer);
     const isMe = a.participant_id === participantId;
-    if (isMe) li.classList.add('is-me'); // 自分の行をハイライト
+    const tie  = answers.filter(x => x.rank === a.rank).length > 1 ? '（タイ）' : '';
+    if (isMe) li.classList.add('is-me');
     li.innerHTML = `
-      <span>${escHtml(a.nickname)}${isMe ? '（自分）' : ''}</span>
+      <span>${a.rank}位${tie} ${escHtml(a.nickname)}${isMe ? '（自分）' : ''}</span>
       <span>${a.value}</span>
-      <span class="answer-diff">差 ${diff.toFixed(4).replace(/\.?0+$/, '')}</span>
+      <span class="answer-diff">差 ${diff.toFixed(4).replace(/\.?0+$/, '')} +${a.pts}pt</span>
     `;
     list.appendChild(li);
   });
