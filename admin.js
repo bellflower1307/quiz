@@ -230,7 +230,9 @@ async function fetchPrizes() {
 
 // prizes テーブルを全件削除する（「景品選択を開始する」押下時に既存データをリセット）
 async function deleteAllPrizes() {
-  await apiFetch('/rest/v1/prizes?id=gte.0', {
+  // id=not.is.null → 「id が null でない行すべて」= 全件削除
+  // bigint・UUID どちらの型でも動作する
+  await apiFetch('/rest/v1/prizes?id=not.is.null', {
     method: 'DELETE',
     headers: { 'Prefer': 'return=minimal' },
   });
