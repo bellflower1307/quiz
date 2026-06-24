@@ -64,6 +64,26 @@
       <!-- 問題を追加するボタン -->
       <button type="button" id="btn-add-question" class="btn-add-question">＋ 問題を追加する</button>
 
+      <!-- ===== 問題メモ =====
+           ここに書いた内容は localStorage に自動保存される。
+           GitHub には一切アップロードされない。
+           「→ 選択中の問題へ」でクリックした問題文を入力欄に流し込める。 -->
+      <details id="memo-details" class="memo-panel">
+        <summary class="memo-summary">📝 問題メモ（コピペ用）</summary>
+        <div id="memo-list" class="memo-list"></div>
+        <button type="button" id="btn-add-memo" class="btn-add-memo">＋ メモを追加する</button>
+      </details>
+
+      <!-- ===== 景品設定 =====
+           景品名を事前に登録しておく折りたたみパネル。
+           「景品選択を開始する」を押したときに DB に保存される。
+           景品名は localStorage にも自動保存され、次回も残る。 -->
+      <details id="prize-setup" class="memo-panel">
+        <summary class="memo-summary">🎁 景品リスト設定</summary>
+        <div id="prize-setup-list" class="prize-setup-list"></div>
+        <button type="button" id="btn-add-prize-item" class="btn-add-memo">＋ 景品を追加する</button>
+      </details>
+
       <!-- ===== 操作ボタン群 =====
            フェーズに応じて JS が有効/無効を切り替える。
            初期状態はすべて disabled（問題を選択するまで押せない） -->
@@ -76,12 +96,21 @@
         <button class="btn btn-results" id="btn-results" disabled>📊 回答結果を表示する</button>
         <!-- 総合ランキング表示 → フェーズを "ranking" に変更 -->
         <button class="btn btn-ranking" id="btn-ranking" disabled>🏆 総合ランキングを表示する</button>
+        <!-- 景品選択開始 → フェーズを "prizes" に変更 -->
+        <button class="btn btn-prizes"  id="btn-prizes"  disabled>🎁 景品選択を開始する</button>
         <!-- 次の問題へ → フェーズを "waiting" に戻す -->
         <button class="btn btn-next"    id="btn-next"    disabled>➡ 次の問題へ（待機中に戻す）</button>
       </div>
 
       <!-- JS が操作結果のメッセージ（「集計完了！」など）を表示する場所 -->
       <p class="admin-msg" id="admin-msg"></p>
+
+      <!-- ===== 景品選択グリッド（phase=prizes のときに表示） =====
+           管理者が景品をクリックすると「取得済み」になり参加者画面も更新される -->
+      <div id="admin-prize-section" class="hidden">
+        <p class="admin-preview-label">🎁 景品選択中 — 景品をクリックして取得済みにする</p>
+        <div id="admin-prize-grid" class="prize-grid"></div>
+      </div>
 
       <!-- ===== 結果プレビュー =====
            「結果を表示」または「総合ランキングを表示」を押したときに

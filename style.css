@@ -287,6 +287,112 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   font-size: .8rem; font-weight: 700;
 }
 .q-item.active .q-num-badge { background: #312e81; } /* 選択中は濃い紫 */
+/* ===== 問題メモパネル ===== */
+
+/* <details> 全体 */
+.memo-panel {
+  margin-bottom: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* 折りたたみ見出し（クリックで開閉） */
+.memo-summary {
+  padding: 10px 14px;
+  font-size: .875rem;
+  font-weight: 600;
+  color: #4a5568;
+  cursor: pointer;
+  user-select: none;
+  list-style: none; /* デフォルトの▶を非表示 */
+  background: #f7fafc;
+}
+.memo-summary::-webkit-details-marker { display: none; }
+.memo-summary::before { content: '▶ '; font-size: .7rem; color: #a0aec0; }
+details[open] .memo-summary::before { content: '▼ '; }
+
+/* メモ行の一覧 */
+.memo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px 4px;
+}
+
+/* 1つのメモ行（テキストエリア＋ボタン） */
+.memo-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* メモのテキストエリア */
+.memo-textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: .875rem;
+  color: #2d3748;
+  resize: vertical; /* 縦方向のみリサイズ可 */
+  font-family: inherit;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color .2s;
+}
+.memo-textarea:focus { border-color: #4f46e5; }
+
+/* ボタン行（コピー＋削除） */
+.memo-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+/* 「→ 選択中の問題へ」ボタン */
+.btn-memo-copy {
+  padding: 4px 12px;
+  background: #4f46e5;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+}
+.btn-memo-copy:hover { background: #4338ca; }
+
+/* メモ削除ボタン（×） */
+.btn-memo-delete {
+  padding: 4px 8px;
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: .8rem;
+  color: #a0aec0;
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.btn-memo-delete:hover { border-color: #e53e3e; color: #e53e3e; }
+
+/* 「メモを追加する」ボタン */
+.btn-add-memo {
+  display: block;
+  width: calc(100% - 28px);
+  margin: 8px 14px 12px;
+  padding: 6px;
+  background: none;
+  border: 1px dashed #cbd5e0;
+  border-radius: 6px;
+  font-size: .8rem;
+  color: #a0aec0;
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.btn-add-memo:hover { border-color: #4f46e5; color: #4f46e5; }
+
 /* 「問題を追加する」ボタン */
 .btn-add-question {
   width: 100%;
@@ -369,6 +475,8 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
 .btn-ranking:hover:not(:disabled) { background: #4338ca; }
 .btn-next    { background: #718096; color: #fff; grid-column: 1 / -1; } /* グレー：次へ（全幅） */
 .btn-next:hover:not(:disabled)    { background: #4a5568; }
+.btn-prizes  { background: #d97706; color: #fff; grid-column: 1 / -1; } /* オレンジ：景品（全幅） */
+.btn-prizes:hover:not(:disabled)  { background: #b45309; }
 
 .admin-msg { font-size: .875rem; color: #718096; text-align: center; min-height: 1.4em; margin-top: 4px; }
 
@@ -689,3 +797,106 @@ input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.15); 
   transition: border-color .2s, color .2s;
 }
 .ba-reset-btn:hover { border-color: #e53e3e; color: #e53e3e; } /* ホバー時に赤くなる（警告色） */
+
+/* ============================================================
+   景品選択グリッド（admin.html / index.html 共通）
+   ============================================================ */
+
+/* 景品カードのグリッドレイアウト（横に並べて折り返す） */
+.prize-grid,
+.prize-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0 16px;
+}
+
+/* 各景品カード */
+.prize-item {
+  flex: 0 0 calc(50% - 5px); /* 2列で並べる */
+  box-sizing: border-box;
+  background: #fff;
+  border: 2px solid #d97706;
+  border-radius: 12px;
+  padding: 14px 12px;
+  text-align: center;
+  font-size: .95rem;
+  font-weight: 600;
+  color: #92400e;
+  transition: background .2s, border-color .2s, color .2s, opacity .2s;
+}
+
+/* 管理者画面では景品カードをクリック可能にする */
+.prize-grid .prize-item {
+  cursor: pointer;
+}
+.prize-grid .prize-item:hover:not(.taken) {
+  background: #fef3c7;
+  border-color: #b45309;
+}
+
+/* 取得済みの景品：グレーアウトしてクリック不可に見せる */
+.prize-item.taken {
+  background: #f7fafc;
+  border-color: #e2e8f0;
+  color: #a0aec0;
+  cursor: default;
+  opacity: .6;
+  text-decoration: line-through;
+}
+
+/* 取得済みラベル（カード内の「✓ テーブルA」など） */
+.prize-taken-by {
+  display: block;
+  font-size: .75rem;
+  font-weight: 400;
+  color: #a0aec0;
+  margin-top: 4px;
+  text-decoration: none;
+}
+
+/* 参加者画面の景品リストは表示のみ（クリック不可） */
+.prize-list .prize-item {
+  cursor: default;
+}
+
+/* 景品設定パネル内の行（名前入力＋削除ボタン） */
+.prize-setup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.prize-setup-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.prize-setup-row input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: .875rem;
+  outline: none;
+}
+.prize-setup-row input:focus { border-color: #d97706; box-shadow: 0 0 0 2px rgba(217,119,6,.1); }
+
+/* 景品設定行の削除ボタン */
+.btn-delete-prize {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  font-size: .75rem;
+  color: #a0aec0;
+  cursor: pointer;
+  line-height: 1;
+  transition: border-color .2s, color .2s, background .2s;
+}
+.btn-delete-prize:hover { border-color: #e53e3e; color: #fff; background: #e53e3e; }

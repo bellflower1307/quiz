@@ -219,12 +219,54 @@ async function renderRankingPreview() {
 // document.getElementById() で HTML の要素を取得して変数に入れておくと
 // 後から何度でも使い回せる（毎回検索するより効率的）
 // ============================================================
+// ============================================================
+// 景品 API 関数
+// ============================================================
+
+// prizes テーブルから全景品を display_order 昇順で取得する
+async function fetchPrizes() {
+  return apiFetch('/rest/v1/prizes?select=*&order=display_order.asc') ?? [];
+}
+
+// prizes テーブルを全件削除する（「景品選択を開始する」押下時に既存データをリセット）
+async function deleteAllPrizes() {
+  await apiFetch('/rest/v1/prizes?id=gte.0', {
+    method: 'DELETE',
+    headers: { 'Prefer': 'return=minimal' },
+  });
+}
+
+// 景品名の配列を prizes テーブルに一括 INSERT する
+async function insertPrizes(names) {
+  const rows = names.map((name, i) => ({
+    name,
+    display_order: i + 1,
+    is_taken: false,
+    taken_by: null,
+  }));
+  await apiFetch('/rest/v1/prizes', {
+    method: 'POST',
+    headers: { 'Prefer': 'return=minimal' },
+    body: JSON.stringify(rows),
+  });
+}
+
+// 指定した景品を「取得済み」に更新する
+async function updatePrizeTaken(id, takenBy) {
+  await apiFetch(`/rest/v1/prizes?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: { 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ is_taken: true, taken_by: takenBy }),
+  });
+}
+
 const phaseBadge = document.getElementById('phase-badge');
 const statusQ    = document.getElementById('status-q');
 const btnOpen    = document.getElementById('btn-open');
 const btnClose   = document.getElementById('btn-close');
 const btnResults = document.getElementById('btn-results');
 const btnRanking = document.getElementById('btn-ranking');
+const btnPrizes  = document.getElementById('btn-prizes');
 const btnNext    = document.getElementById('btn-next');
 const adminMsg   = document.getElementById('admin-msg');
 const qList      = document.getElementById('q-list');
@@ -242,7 +284,7 @@ function getQItems() { return [...qList.querySelectorAll('.q-item')]; }
 // ============================================================
 const PHASE_LABELS = {
   waiting: '待機中', open: '受付中', closed: '締切済',
-  results: '結果表示中', ranking: 'ランキング表示中',
+  results: '結果表示中', ranking: 'ランキング表示中', prizes: '景品選択中',
 };
 
 function applyState(state) {
@@ -256,13 +298,17 @@ function applyState(state) {
   btnClose.disabled   = phase !== 'open';
   btnResults.disabled = phase !== 'closed';
   btnRanking.disabled = phase !== 'results';
+  // ranking または prizes フェーズのときだけ「景品選択を開始する」を押せる
+  btnPrizes.disabled  = phase !== 'ranking' && phase !== 'prizes';
   btnNext.disabled    = phase === 'waiting' || phase === 'open';
+  // prizes フェーズのときだけ管理者景品グリッドを表示する
+  document.getElementById('admin-prize-section').classList.toggle('hidden', phase !== 'prizes');
 }
 
 function setMsg(text) { adminMsg.textContent = text; }
 
 function setAllButtonsDisabled(val) {
-  [btnOpen, btnClose, btnResults, btnRanking, btnNext].forEach((b) => b.disabled = val);
+  [btnOpen, btnClose, btnResults, btnRanking, btnPrizes, btnNext].forEach((b) => b.disabled = val);
 }
 
 // ============================================================
@@ -463,6 +509,61 @@ btnRanking.addEventListener('click', async () => {
   }
 });
 
+// 管理者の景品グリッドを描画する（prizes フェーズ中に呼ぶ）
+// 景品をクリックすると「取得済み」にしてグリッドを再描画する
+async function renderAdminPrizeGrid() {
+  const prizes = await fetchPrizes();
+  const grid   = document.getElementById('admin-prize-grid');
+  grid.innerHTML = '';
+  prizes.forEach((p) => {
+    const card = document.createElement('div');
+    card.className = 'prize-item' + (p.is_taken ? ' taken' : '');
+    card.innerHTML = `
+      <span>${escHtml(p.name)}</span>
+      ${p.is_taken ? `<span class="prize-taken-by">✓ ${escHtml(p.taken_by ?? '')}</span>` : ''}
+    `;
+    if (!p.is_taken) {
+      card.addEventListener('click', async () => {
+        // 取得したテーブル番号を入力してもらう
+        const who = prompt(`「${p.name}」を取得するテーブル番号を入力してください。`);
+        if (who === null || who.trim() === '') return; // キャンセルまたは空は無視
+        try {
+          await updatePrizeTaken(p.id, who.trim());
+          await renderAdminPrizeGrid(); // グリッドを再描画
+        } catch (err) {
+          setMsg('エラー：' + err.message);
+        }
+      });
+    }
+    grid.appendChild(card);
+  });
+}
+
+// 「景品選択を開始する」→ 景品を DB に保存して prizes フェーズへ
+btnPrizes.addEventListener('click', async () => {
+  // 景品設定パネルの入力欄から景品名を収集する
+  const names = [...document.querySelectorAll('.prize-setup-row input')]
+    .map(el => el.value.trim())
+    .filter(Boolean); // 空文字は除外
+  if (!names.length) {
+    setMsg('景品リストが空です。景品リスト設定で景品を追加してください。');
+    return;
+  }
+  setAllButtonsDisabled(true);
+  setMsg('景品データを保存中…');
+  try {
+    await deleteAllPrizes();    // 既存の景品を全削除（前回の残りを消す）
+    await insertPrizes(names);  // 新しい景品を登録
+    await patchQuizState({ phase: 'prizes' });
+    setMsg('景品選択を開始しました。');
+    applyState(await fetchQuizState());
+    await renderAdminPrizeGrid();
+  } catch (err) {
+    setMsg('エラー：' + err.message);
+    applyState(await fetchQuizState());
+  }
+});
+
 // 「次の問題へ（待機中に戻す）」→ waiting フェーズへリセット
 btnNext.addEventListener('click', async () => {
   setAllButtonsDisabled(true);
@@ -477,7 +578,7 @@ btnNext.addEventListener('click', async () => {
     });
     // 選択状態もリセット
     selectedNum = null; selectedText = null; selectedCorrect = null;
-    qItems.forEach((el) => el.classList.remove('active'));
+    getQItems().forEach((el) => el.classList.remove('active'));
     setMsg('待機中に戻しました。次の問題を選択してください。');
     applyState(await fetchQuizState());
   } catch (err) {
@@ -487,6 +588,128 @@ btnNext.addEventListener('click', async () => {
 });
 
 // ============================================================
+// 問題メモ機能
+//
+// メモは localStorage の 'quiz_admin_memos' キーに JSON 配列で保存する。
+// GitHub には一切アップロードされない。
+// ============================================================
+const MEMO_KEY = 'quiz_admin_memos';
+
+// localStorage からメモ一覧を読み込む
+function loadMemos() {
+  try { return JSON.parse(localStorage.getItem(MEMO_KEY)) ?? []; }
+  catch { return []; }
+}
+
+// メモ一覧を localStorage に書き込む
+function saveMemos() {
+  const texts = [...document.querySelectorAll('.memo-textarea')]
+    .map(el => el.value);
+  localStorage.setItem(MEMO_KEY, JSON.stringify(texts));
+}
+
+// メモ行を1つ生成して memo-list に追加する
+function addMemo(text = '') {
+  const memoList = document.getElementById('memo-list');
+  const row = document.createElement('div');
+  row.className = 'memo-row';
+  row.innerHTML = `
+    <textarea class="memo-textarea" rows="2" placeholder="問題文をここにメモしておく（自動保存・GitHub非公開）">${escHtml(text)}</textarea>
+    <div class="memo-actions">
+      <button type="button" class="btn-memo-copy">→ 選択中の問題へ</button>
+      <button type="button" class="btn-memo-delete">✕</button>
+    </div>
+  `;
+
+  // 入力のたびに自動保存
+  row.querySelector('.memo-textarea').addEventListener('input', saveMemos);
+
+  // 選択中の問題の問題文入力欄にコピーする
+  row.querySelector('.btn-memo-copy').addEventListener('click', () => {
+    if (selectedNum === null) { setMsg('先に問題を選択してください。'); return; }
+    const activeItem = getQItems().find(el => Number(el.dataset.num) === selectedNum);
+    if (!activeItem) return;
+    const textInput = activeItem.querySelector('.q-text-input');
+    textInput.value = row.querySelector('.memo-textarea').value;
+    // 入力イベントを手動で発火して selectedText を更新する
+    textInput.dispatchEvent(new Event('input'));
+    setMsg(`Q${selectedNum} の問題文をメモからコピーしました。`);
+  });
+
+  // このメモ行を削除する
+  row.querySelector('.btn-memo-delete').addEventListener('click', () => {
+    row.remove();
+    saveMemos();
+  });
+
+  memoList.appendChild(row);
+}
+
+// 「メモを追加する」ボタン
+document.getElementById('btn-add-memo').addEventListener('click', () => {
+  addMemo();
+  saveMemos();
+});
+
+// ページ読み込み時に保存済みメモを復元する（setupAdminAuth の外で実行してよい）
+loadMemos().forEach(text => addMemo(text));
+// メモが0件のときは空のメモを1つ表示する
+if (loadMemos().length === 0) addMemo();
+
+// ============================================================
+// 景品設定パネル（localStorage に自動保存）
+//
+// 景品名リストは 'quiz_admin_prizes' キーで保存。
+// GitHub には一切アップロードされない。
+// ============================================================
+const PRIZE_KEY = 'quiz_admin_prizes';
+
+// localStorage から景品名リストを読み込む
+function loadPrizeSetup() {
+  try { return JSON.parse(localStorage.getItem(PRIZE_KEY)) ?? []; }
+  catch { return []; }
+}
+
+// 景品設定リストを localStorage に保存する
+function savePrizeSetup() {
+  const names = [...document.querySelectorAll('.prize-setup-row input')]
+    .map(el => el.value);
+  localStorage.setItem(PRIZE_KEY, JSON.stringify(names));
+}
+
+// 景品設定行を1つ生成して prize-setup-list に追加する
+function addPrizeItem(text = '') {
+  const list = document.getElementById('prize-setup-list');
+  const row  = document.createElement('div');
+  row.className = 'prize-setup-row';
+  row.innerHTML = `
+    <input type="text" placeholder="景品名（例：Amazonギフト券 500円）" value="${escHtml(text)}" />
+    <button type="button" class="btn-delete-prize" title="削除">✕</button>
+  `;
+  row.querySelector('input').addEventListener('input', savePrizeSetup);
+  row.querySelector('.btn-delete-prize').addEventListener('click', () => {
+    row.remove();
+    savePrizeSetup();
+  });
+  list.appendChild(row);
+}
+
+// 「景品を追加する」ボタン
+document.getElementById('btn-add-prize-item').addEventListener('click', () => {
+  addPrizeItem();
+  savePrizeSetup();
+});
+
+// ページ読み込み時に保存済み景品設定を復元する
+const savedPrizes = loadPrizeSetup();
+if (savedPrizes.length) {
+  savedPrizes.forEach(text => addPrizeItem(text));
+} else {
+  // 初回は空の行を3つ表示する
+  for (let i = 0; i < 3; i++) addPrizeItem();
+}
+
+// ============================================================
 // 初期化（ログイン後に実行）
 //
 // setupAdminAuth はコールバック関数を受け取り、
@@ -494,7 +717,10 @@ btnNext.addEventListener('click', async () => {
 // ============================================================
 setupAdminAuth(async () => {
   try {
-    applyState(await fetchQuizState()); // 現在の状態を取得して画面に反映
+    const state = await fetchQuizState();
+    applyState(state); // 現在の状態を取得して画面に反映
+    // prizes フェーズでログインした場合はグリッドも復元する
+    if (state?.phase === 'prizes') await renderAdminPrizeGrid();
   } catch (err) {
     setMsg('初期化失敗：' + err.message);
   }

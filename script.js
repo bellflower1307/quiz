@@ -169,7 +169,7 @@ function subscribeQuizState(onChange) {
 // 7 つの画面（screen）を定義し、showScreen(名前) で切り替える。
 // "hidden" クラスが付いていると display:none で非表示になる（style.css 参照）。
 // ============================================================
-const SCREENS = ['nickname', 'waiting', 'question', 'submitted', 'closed', 'results', 'ranking'];
+const SCREENS = ['nickname', 'waiting', 'question', 'submitted', 'closed', 'results', 'ranking', 'prizes'];
 
 function showScreen(name) {
   SCREENS.forEach((s) => {
@@ -223,6 +223,11 @@ async function applyState(state) {
       showScreen('ranking');
       break;
 
+    case 'prizes': // 景品選択
+      await renderPrizes();
+      showScreen('prizes');
+      break;
+
     default:
       showScreen('waiting');
   }
@@ -266,9 +271,12 @@ document.getElementById('answer-form').addEventListener('submit', async (e) => {
   const raw = document.getElementById('answer-input').value.trim();
   const msgEl = document.getElementById('answer-message');
 
-  // 入力値のバリデーション（空または数値以外は弾く）
-  if (raw === '' || isNaN(Number(raw))) {
-    msgEl.textContent = '数値を入力してください。';
+  // 入力値のバリデーション
+  // isNaN: "abc" などの文字列を弾く
+  // isFinite: 1e309（Infinity に変換される巨大数）を弾く
+  const num = Number(raw);
+  if (raw === '' || isNaN(num) || !isFinite(num)) {
+    msgEl.textContent = '有効な数値を入力してください。';
     msgEl.className = 'message error';
     return;
   }
@@ -279,7 +287,7 @@ document.getElementById('answer-form').addEventListener('submit', async (e) => {
   msgEl.className = 'message';
 
   try {
-    await insertAnswer(currentQuestionNumber, Number(raw)); // DB に回答を保存
+    await insertAnswer(currentQuestionNumber, num); // DB に回答を保存
     submittedAnswer = Number(raw);
     showScreen('submitted');
   } catch (err) {
@@ -386,6 +394,73 @@ async function renderResults(questionNumber, correctAnswer) {
 }
 
 // ============================================================
+// 景品画面のレンダリング
+//
+// prizes テーブルを anon ロールで読み取り、全景品を表示する。
+// 取得済み（is_taken=true）の景品はグレーアウトして表示する。
+// ============================================================
+async function fetchPrizes() {
+  return apiFetch('/rest/v1/prizes?select=*&order=display_order.asc') ?? [];
+}
+
+async function renderPrizes() {
+  const prizes = await fetchPrizes();
+  const list   = document.getElementById('prize-list');
+  list.innerHTML = '';
+  if (!prizes.length) {
+    list.innerHTML = '<p style="color:#a0aec0;text-align:center">景品がありません</p>';
+    return;
+  }
+  prizes.forEach((p) => {
+    const card = document.createElement('div');
+    card.className = 'prize-item' + (p.is_taken ? ' taken' : '');
+    card.innerHTML = `
+      <span>${escHtml(p.name)}</span>
+      ${p.is_taken ? `<span class="prize-taken-by">✓ ${escHtml(p.taken_by ?? '')}</span>` : ''}
+    `;
+    list.appendChild(card);
+  });
+}
+
+// prizes テーブルの変更をリアルタイムで反映するための購読
+// 管理者が景品を「取得済み」にするたびに参加者画面も自動更新される
+function subscribePrizes() {
+  const wsUrl = SUPABASE_URL.replace('https://', 'wss://')
+    + `/realtime/v1/websocket?apikey=${SUPABASE_ANON_KEY}&vsn=1.0.0`;
+  const ws = new WebSocket(wsUrl);
+
+  ws.addEventListener('open', () => {
+    setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN)
+        ws.send(JSON.stringify({ topic: 'phoenix', event: 'heartbeat', payload: {}, ref: null }));
+    }, 25000);
+
+    ws.send(JSON.stringify({
+      topic: 'realtime:public:prizes',
+      event: 'phx_join',
+      payload: {
+        config: {
+          broadcast: { self: false },
+          presence: { key: '' },
+          postgres_changes: [{ event: '*', schema: 'public', table: 'prizes' }],
+        },
+      },
+      ref: '2',
+    }));
+  });
+
+  ws.addEventListener('message', async (e) => {
+    const msg = JSON.parse(e.data);
+    // prizes テーブルの変更通知が来たら景品一覧を再描画する
+    if (msg.event === 'postgres_changes' && msg.payload?.data?.table === 'prizes') {
+      await renderPrizes();
+    }
+  });
+
+  ws.addEventListener('close', () => setTimeout(() => subscribePrizes(), 3000));
+}
+
+// ============================================================
 // ランキング画面のレンダリング
 // ============================================================
 async function renderRanking() {
@@ -459,4 +534,7 @@ function escHtml(str) {
 
   // Realtime 購読を開始：出題者が状態を変えるたびに画面が自動切替わる
   subscribeQuizState((record) => applyState(record));
+
+  // 景品テーブルの変更も購読：管理者が景品を取得済みにすると参加者画面も自動更新
+  subscribePrizes();
 })();
