@@ -477,6 +477,8 @@ details[open] .memo-summary::before { content: '▼ '; }
 .btn-next:hover:not(:disabled)    { background: #4a5568; }
 .btn-prizes  { background: #d97706; color: #fff; grid-column: 1 / -1; } /* オレンジ：景品（全幅） */
 .btn-prizes:hover:not(:disabled)  { background: #b45309; }
+.btn-rules   { background: #0891b2; color: #fff; grid-column: 1 / -1; } /* 水色：ルール（全幅） */
+.btn-rules:hover:not(:disabled)   { background: #0e7490; }
 
 .admin-msg { font-size: .875rem; color: #718096; text-align: center; min-height: 1.4em; margin-top: 4px; }
 
@@ -797,6 +799,40 @@ details[open] .memo-summary::before { content: '▼ '; }
   transition: border-color .2s, color .2s;
 }
 .ba-reset-btn:hover { border-color: #e53e3e; color: #e53e3e; } /* ホバー時に赤くなる（警告色） */
+
+/* ============================================================
+   ルール表示画面（index.html）
+   ============================================================ */
+
+/* ルール本文の表示エリア */
+.rules-body {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: .95rem;
+  line-height: 1.8;
+  color: #2d3748;
+  text-align: left;
+  white-space: pre-wrap; /* 改行・スペースをそのまま表示 */
+  word-break: break-word;
+}
+
+/* ルール設定パネルのテキストエリア（管理者画面） */
+.rules-edit-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  font-size: .875rem;
+  line-height: 1.7;
+  color: #2d3748;
+  resize: vertical; /* 縦方向にのみリサイズ可能 */
+  outline: none;
+  margin-top: 8px;
+}
+.rules-edit-textarea:focus { border-color: #0891b2; box-shadow: 0 0 0 2px rgba(8,145,178,.1); }
 
 /* ============================================================
    景品選択グリッド（admin.html / index.html 共通）

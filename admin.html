@@ -74,6 +74,16 @@
         <button type="button" id="btn-add-memo" class="btn-add-memo">＋ メモを追加する</button>
       </details>
 
+      <!-- ===== ルール設定 =====
+           ルール本文を事前に入力しておく折りたたみパネル。
+           内容は localStorage に自動保存され、次回も残る。
+           「ルールを表示する」を押すと参加者画面に配信される。 -->
+      <details id="rules-setup" class="memo-panel">
+        <summary class="memo-summary">📋 ルール設定</summary>
+        <textarea id="rules-textarea" class="rules-edit-textarea"
+          rows="6" placeholder="ここにルールを入力してください（改行可）"></textarea>
+      </details>
+
       <!-- ===== 景品設定 =====
            景品名を事前に登録しておく折りたたみパネル。
            「景品選択を開始する」を押したときに DB に保存される。
@@ -88,6 +98,8 @@
            フェーズに応じて JS が有効/無効を切り替える。
            初期状態はすべて disabled（問題を選択するまで押せない） -->
       <div class="action-grid">
+        <!-- ルール表示 → フェーズを "rules" に変更（いつでも押せる） -->
+        <button class="btn btn-rules"   id="btn-rules"   >📋 ルールを表示する</button>
         <!-- 回答受付を開始 → フェーズを "open" に変更 -->
         <button class="btn btn-open"    id="btn-open"    disabled>▶ 回答を開始する</button>
         <!-- 回答を締め切る → フェーズを "closed" に変更 -->

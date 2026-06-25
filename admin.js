@@ -268,6 +268,7 @@ const btnOpen    = document.getElementById('btn-open');
 const btnClose   = document.getElementById('btn-close');
 const btnResults = document.getElementById('btn-results');
 const btnRanking = document.getElementById('btn-ranking');
+const btnRules   = document.getElementById('btn-rules');
 const btnPrizes  = document.getElementById('btn-prizes');
 const btnNext    = document.getElementById('btn-next');
 const adminMsg   = document.getElementById('admin-msg');
@@ -286,7 +287,7 @@ function getQItems() { return [...qList.querySelectorAll('.q-item')]; }
 // ============================================================
 const PHASE_LABELS = {
   waiting: '待機中', open: '受付中', closed: '締切済',
-  results: '結果表示中', ranking: 'ランキング表示中', prizes: '景品選択中',
+  results: '結果表示中', ranking: 'ランキング表示中', prizes: '景品選択中', rules: 'ルール表示中',
 };
 
 function applyState(state) {
@@ -302,6 +303,8 @@ function applyState(state) {
   btnRanking.disabled = phase !== 'results';
   // ranking または prizes フェーズのときだけ「景品選択を開始する」を押せる
   btnPrizes.disabled  = phase !== 'ranking' && phase !== 'prizes';
+  // ルールはいつでも表示できる（open 中も含む）
+  btnRules.disabled   = false;
   btnNext.disabled    = phase === 'waiting' || phase === 'open';
   // prizes フェーズのときだけ管理者景品グリッドを表示する
   document.getElementById('admin-prize-section').classList.toggle('hidden', phase !== 'prizes');
@@ -311,6 +314,7 @@ function setMsg(text) { adminMsg.textContent = text; }
 
 function setAllButtonsDisabled(val) {
   [btnOpen, btnClose, btnResults, btnRanking, btnPrizes, btnNext].forEach((b) => b.disabled = val);
+  // btnRules はいつでも押せるので setAllButtonsDisabled の対象外にする
 }
 
 // ============================================================
@@ -657,6 +661,38 @@ document.getElementById('btn-add-memo').addEventListener('click', () => {
 loadMemos().forEach(text => addMemo(text));
 // メモが0件のときは空のメモを1つ表示する
 if (loadMemos().length === 0) addMemo();
+
+// ============================================================
+// ルール設定パネル（localStorage に自動保存）
+//
+// ルール本文は 'quiz_admin_rules' キーで保存。
+// 「ルールを表示する」押下時に quiz_state.question_text へ書き込み配信する。
+// ============================================================
+const RULES_KEY = 'quiz_admin_rules';
+const rulesTextarea = document.getElementById('rules-textarea');
+
+// 保存済みルール本文を復元する
+rulesTextarea.value = localStorage.getItem(RULES_KEY) ?? '';
+// 入力のたびに自動保存
+rulesTextarea.addEventListener('input', () => {
+  localStorage.setItem(RULES_KEY, rulesTextarea.value);
+});
+
+// 「ルールを表示する」→ rules フェーズへ。question_text にルール本文を乗せて配信
+btnRules.addEventListener('click', async () => {
+  const text = rulesTextarea.value.trim();
+  if (!text) { setMsg('ルール設定にテキストを入力してください。'); return; }
+  setAllButtonsDisabled(true);
+  setMsg('ルールを表示中…');
+  try {
+    await patchQuizState({ phase: 'rules', question_text: text });
+    setMsg('ルール画面を表示しました。');
+    applyState(await fetchQuizState());
+  } catch (err) {
+    setMsg('エラー：' + err.message);
+    applyState(await fetchQuizState());
+  }
+});
 
 // ============================================================
 // 景品設定パネル（localStorage に自動保存）

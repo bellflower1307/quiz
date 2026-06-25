@@ -114,7 +114,17 @@
       <ol id="ranking-list" class="ranking-list"></ol>
     </div>
 
-    <!-- ⑧ 景品選択画面
+    <!-- ⑧ ルール表示画面
+         管理者が「ルールを表示する」を押すと全員に表示される。
+         ルール本文は管理者画面で入力し、quiz_state 経由で配信される。 -->
+    <div id="rules-screen" class="screen hidden">
+      <div class="big-icon">📋</div>
+      <h2 class="screen-title">ルール説明</h2>
+      <!-- JS がルール本文をここに入れる（改行は <br> に変換して表示） -->
+      <div id="rules-body" class="rules-body"></div>
+    </div>
+
+    <!-- ⑨ 景品選択画面
          管理者が「景品選択を開始」を押すと全員に表示される。
          取得済みの景品は薄くなってクリックできなくなる。 -->
     <div id="prizes-screen" class="screen hidden">

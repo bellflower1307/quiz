@@ -169,7 +169,7 @@ function subscribeQuizState(onChange) {
 // 7 つの画面（screen）を定義し、showScreen(名前) で切り替える。
 // "hidden" クラスが付いていると display:none で非表示になる（style.css 参照）。
 // ============================================================
-const SCREENS = ['nickname', 'waiting', 'question', 'submitted', 'closed', 'results', 'ranking', 'prizes'];
+const SCREENS = ['nickname', 'waiting', 'question', 'submitted', 'closed', 'results', 'ranking', 'prizes', 'rules'];
 
 function showScreen(name) {
   SCREENS.forEach((s) => {
@@ -226,6 +226,11 @@ async function applyState(state) {
     case 'prizes': // 景品選択
       await renderPrizes();
       showScreen('prizes');
+      break;
+
+    case 'rules': // ルール表示
+      renderRules(question_text);
+      showScreen('rules');
       break;
 
     default:
@@ -458,6 +463,17 @@ function subscribePrizes() {
   });
 
   ws.addEventListener('close', () => setTimeout(() => subscribePrizes(), 3000));
+}
+
+// ============================================================
+// ルール画面のレンダリング
+//
+// question_text にルール本文が入っているので、改行を <br> に変換して表示する。
+// ============================================================
+function renderRules(text) {
+  const body = document.getElementById('rules-body');
+  // 改行コード(\n)を <br> タグに変換して表示する（escHtml でXSS対策済み）
+  body.innerHTML = escHtml(text ?? '').replace(/\n/g, '<br>');
 }
 
 // ============================================================
