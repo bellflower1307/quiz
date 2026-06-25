@@ -126,7 +126,7 @@ async function fetchRanking() {
     if (!map.has(row.participant_id)) {
       map.set(row.participant_id, { nickname: row.nickname, total_points: 0 });
     }
-    map.get(row.participant_id).total_points += row.points_earned;
+    map.get(row.participant_id).total_points += (row.points_earned ?? 0);
   }
   return [...map.values()].sort((a, b) => b.total_points - a.total_points);
 }
@@ -313,8 +313,7 @@ function applyState(state) {
 function setMsg(text) { adminMsg.textContent = text; }
 
 function setAllButtonsDisabled(val) {
-  [btnOpen, btnClose, btnResults, btnRanking, btnPrizes, btnNext].forEach((b) => b.disabled = val);
-  // btnRules はいつでも押せるので setAllButtonsDisabled の対象外にする
+  [btnOpen, btnClose, btnResults, btnRanking, btnPrizes, btnRules, btnNext].forEach((b) => b.disabled = val);
 }
 
 // ============================================================
@@ -329,8 +328,8 @@ function readSelectedInputs(item) {
 }
 
 function selectedMsg() {
-  if (!selectedText)    return `Q${selectedNum} を選択（問題文を入力してください）`;
-  if (!selectedCorrect) return `Q${selectedNum} を選択（正解の値を入力してください）`;
+  if (!selectedText)              return `Q${selectedNum} を選択（問題文を入力してください）`;
+  if (selectedCorrect === null)   return `Q${selectedNum} を選択（正解の値を入力してください）`;
   return `Q${selectedNum} を選択（問題文・正解入力済み）`;
 }
 
@@ -679,10 +678,17 @@ rulesTextarea.addEventListener('input', () => {
 });
 
 // 「ルールを表示する」→ rules フェーズへ。question_text にルール本文を乗せて配信
+// open / closed フェーズ中は押せないようにする（question_text を上書きしてしまうため）
 btnRules.addEventListener('click', async () => {
+  const phase = currentState?.phase;
+  if (phase === 'open' || phase === 'closed') {
+    setMsg('回答受付中・締切済みの間はルールを表示できません。先に「次の問題へ」で待機中に戻してください。');
+    return;
+  }
   const text = rulesTextarea.value.trim();
   if (!text) { setMsg('ルール設定にテキストを入力してください。'); return; }
   setAllButtonsDisabled(true);
+  btnRules.disabled = true; // 自身も操作中は無効化
   setMsg('ルールを表示中…');
   try {
     await patchQuizState({ phase: 'rules', question_text: text });
@@ -691,6 +697,8 @@ btnRules.addEventListener('click', async () => {
   } catch (err) {
     setMsg('エラー：' + err.message);
     applyState(await fetchQuizState());
+  } finally {
+    btnRules.disabled = false;
   }
 });
 

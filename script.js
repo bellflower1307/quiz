@@ -110,7 +110,7 @@ async function fetchRanking() {
     if (!map.has(row.participant_id)) {
       map.set(row.participant_id, { id: row.participant_id, nickname: row.nickname, total_points: 0 });
     }
-    map.get(row.participant_id).total_points += row.points_earned;
+    map.get(row.participant_id).total_points += (row.points_earned ?? 0);
   }
   // ポイント降順にソートして上位 20 名を返す
   return [...map.values()].sort((a, b) => b.total_points - a.total_points).slice(0, 20);
@@ -334,18 +334,8 @@ async function renderResults(questionNumber, correctAnswer) {
   // 正解との差が小さい順にソート
   answers.sort((a, b) => Math.abs(a.value - correctAnswer) - Math.abs(b.value - correctAnswer));
 
-  // タイを考慮したランク・ポイント付与（admin.js と同じロジック）
-  const total = answers.length;
-  let idx = 0;
-  while (idx < total) {
-    const diff = Math.abs(answers[idx].value - correctAnswer);
-    let end = idx;
-    while (end < total && Math.abs(answers[end].value - correctAnswer) === diff) end++;
-    const rank = idx + 1;
-    const pts  = total - idx;
-    for (let k = idx; k < end; k++) { answers[k].rank = rank; answers[k].pts = pts; }
-    idx = end;
-  }
+  // タイを考慮したランク・ポイント付与
+  assignRanksAndPoints(answers, correctAnswer, answers.length);
 
   // 表彰台（rank 1〜3 に該当する人を全員表示）
   const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' };
@@ -458,7 +448,7 @@ function subscribePrizes() {
     const msg = JSON.parse(e.data);
     // prizes テーブルの変更通知が来たら景品一覧を再描画する
     if (msg.event === 'postgres_changes' && msg.payload?.data?.table === 'prizes') {
-      await renderPrizes();
+      try { await renderPrizes(); } catch { /* 一時的な通信エラーは無視（次のイベントで再試行） */ }
     }
   });
 
@@ -504,6 +494,22 @@ async function renderRanking() {
 // ============================================================
 // ユーティリティ
 // ============================================================
+
+// タイを考慮したランク・ポイント計算
+// answers は「正解との差」昇順でソート済みであること。
+// 同差の参加者には同じ rank と pts を付与し、次グループの rank はタイ人数分だけ飛ばす。
+function assignRanksAndPoints(answers, correct, total) {
+  let idx = 0;
+  while (idx < total) {
+    const diff = Math.abs(answers[idx].value - correct);
+    let end = idx;
+    while (end < total && Math.abs(answers[end].value - correct) === diff) end++;
+    const rank = idx + 1;
+    const pts  = total - idx;
+    for (let k = idx; k < end; k++) { answers[k].rank = rank; answers[k].pts = pts; }
+    idx = end;
+  }
+}
 
 // XSS（クロスサイトスクリプティング）対策：
 // ユーザー入力の文字列を HTML として解釈させないようにエスケープする。
